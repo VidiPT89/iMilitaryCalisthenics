@@ -7,7 +7,7 @@ struct MilitaryCalisthenicsApp: App {
 
     init() {
         do {
-            modelContainer = try ModelContainer(for: PersistedProfile.self)
+            modelContainer = try ModelContainer(for: PersistedProfile.self, WeightEntry.self)
         } catch {
             fatalError("Failed to create model container: \(error)")
         }

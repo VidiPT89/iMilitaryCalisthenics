@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     var viewModel: PlanViewModel
     @State private var lang = LocalizationManager.shared
+    @State private var showProgress = false
 
     var body: some View {
         ScrollView {
@@ -13,12 +14,34 @@ struct SettingsView: View {
                     .padding(.top, 24)
 
                 languageCard
+                progressButton
                 editProfileButton
                 aboutCard
             }
             .padding(20)
         }
         .background(Theme.background)
+        .sheet(isPresented: $showProgress) {
+            WeightProgressView(viewModel: viewModel)
+        }
+    }
+
+    private var progressButton: some View {
+        Button {
+            showProgress = true
+        } label: {
+            HStack {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                Text(t("settings.progress"))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Theme.textFaint)
+            }
+            .foregroundStyle(Theme.text)
+            .padding(16)
+            .panelBackground()
+        }
+        .buttonStyle(.plain)
     }
 
     private var languageCard: some View {

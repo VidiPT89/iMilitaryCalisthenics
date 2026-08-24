@@ -9,6 +9,7 @@ final class PlanViewModel {
     var selectedWeekIndex: Int = 0
     var selectedDayIndex: Int = 0
     var completedExerciseIDs: Set<String> = []
+    var weightHistory: [WeightEntry] = []
 
     private var context: ModelContext?
     private var storedProfile: PersistedProfile?
@@ -22,6 +23,34 @@ final class PlanViewModel {
             completedExerciseIDs = Set(existing.completedExerciseIDs)
             plan = PlanEngine.generate(for: existing.profile)
         }
+        reloadWeightHistory()
+    }
+
+    private func reloadWeightHistory() {
+        guard let context else { return }
+        let descriptor = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\.date)])
+        weightHistory = (try? context.fetch(descriptor)) ?? []
+    }
+
+    /// Logs a new bodyweight measurement, updates the active profile's
+    /// current weight and regenerates the plan so future weeks reflect the
+    /// new weight, level and goal — without forcing the user back through
+    /// onboarding. See docs/plan-engine-spec.md "Weight recalibration".
+    func logWeight(_ weightKg: Double, on date: Date = .now) {
+        guard let context, var profile else { return }
+        let entry = WeightEntry(date: date, weightKg: weightKg)
+        context.insert(entry)
+
+        profile.weightKg = weightKg
+        self.profile = profile
+        storedProfile?.update(from: profile)
+        completedExerciseIDs = []
+        selectedWeekIndex = 0
+        selectedDayIndex = 0
+        try? context.save()
+
+        plan = PlanEngine.generate(for: profile)
+        reloadWeightHistory()
     }
 
     func save(profile: UserProfile) {

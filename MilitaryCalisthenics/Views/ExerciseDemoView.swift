@@ -23,11 +23,12 @@ struct ExerciseDemoView: View {
 
     private func draw(pose: StickPose, in context: inout GraphicsContext, size: CGSize) {
         var ctx = context
-        if pose.horizontal {
-            ctx.translateBy(x: size.width / 2, y: size.height / 2)
-            ctx.rotate(by: .degrees(90))
-            ctx.translateBy(x: -size.width / 2, y: -size.height / 2)
-        }
+        // Pose coordinates already encode the correct body axis: floor
+        // exercises (push-up, plank, mountain climber, etc.) lay the
+        // head/hip/limbs out along the x-axis, standing exercises lay
+        // them out along the y-axis. No rotation needed — rotating here
+        // used to flip floor poses back onto a vertical axis, which is
+        // the opposite of what `horizontal` is meant to signal.
 
         func point(_ p: CGPoint) -> CGPoint {
             CGPoint(x: p.x * size.width, y: p.y * size.height)
@@ -50,7 +51,7 @@ struct ExerciseDemoView: View {
                                width: headRadius * 2, height: headRadius * 2)
         ctx.fill(Path(ellipseIn: headRect), with: .color(limbColor))
 
-        let groundY = size.height * (pose.horizontal ? 0.5 : 0.94)
+        let groundY = size.height * (pose.horizontal ? 0.88 : 0.94)
         var ground = Path()
         ground.move(to: CGPoint(x: 0, y: groundY))
         ground.addLine(to: CGPoint(x: size.width, y: groundY))

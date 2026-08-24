@@ -133,7 +133,16 @@ enum Translations {
         // Settings / About
         "settings.title": [.pt: "Definições", .en: "Settings"],
         "settings.language": [.pt: "Idioma", .en: "Language"],
+        "settings.progress": [.pt: "Peso e progresso", .en: "Weight & progress"],
         "settings.about": [.pt: "Sobre", .en: "About"],
+
+        "common.close": [.pt: "Fechar", .en: "Close"],
+        "progress.title": [.pt: "Progresso", .en: "Progress"],
+        "progress.trend": [.pt: "Evolução do peso", .en: "Weight trend"],
+        "progress.trend.empty": [.pt: "Regista pelo menos duas pesagens para veres a evolução.", .en: "Log at least two weigh-ins to see your trend."],
+        "progress.log": [.pt: "Registar peso", .en: "Log weight"],
+        "progress.date": [.pt: "Data", .en: "Date"],
+        "progress.save": [.pt: "Guardar e recalcular plano", .en: "Save & recalculate plan"],
         "about.developedBy": [.pt: "Desenvolvido por David Arsénio Martins", .en: "Developed by David Arsénio Martins"],
         "about.website": [.pt: "Website", .en: "Website"],
         "about.github": [.pt: "GitHub", .en: "GitHub"],

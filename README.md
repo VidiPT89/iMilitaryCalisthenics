@@ -14,6 +14,8 @@
 - ✅ Warm-up → strength → circuit/HIIT → core → cool-down structure for every session
 - ✅ Animated progress ring, spring transitions and satisfying per-exercise completion states
 - ✅ Looping stick-figure demo animation and coaching cue for every exercise, drawn natively — no video files, fully offline
+- ✅ Correct exercise posture in the demos — floor exercises animate on a horizontal axis, standing exercises on a vertical one
+- ✅ Weight log with trend sparkline — logging a new weigh-in recalibrates the plan's intensity to match, no re-onboarding needed
 - ✅ In-app PT-PT / EN language switch, independent of the device locale
 - ✅ Fully offline, local persistence with SwiftData
 
