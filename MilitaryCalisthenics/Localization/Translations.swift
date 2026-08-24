@@ -129,6 +129,9 @@ enum Translations {
         "cue.childsPose": [.pt: "Sentado sobre os calcanhares, braços esticados à frente, respira fundo.", .en: "Sit back on your heels, arms extended forward, breathe deeply."],
         "cue.deepBreathing": [.pt: "Inspira pelo nariz, expande o abdómen, expira devagar pela boca.", .en: "Inhale through the nose, let the belly expand, exhale slowly through the mouth."],
         "cue.generic": [.pt: "Executa o movimento de forma controlada, mantendo o core estável.", .en: "Perform the movement under control, keeping your core braced."],
+        "cue.armCircle": [.pt: "De pé, braços esticados, faz círculos largos para a frente e para trás.", .en: "Standing tall, arms extended, make wide circles forward and backward."],
+        "cue.legSwing": [.pt: "De pé, apoiado se precisares, balança uma perna à frente e atrás com controlo.", .en: "Standing tall, holding on if needed, swing one leg forward and back with control."],
+        "cue.jumpingJack": [.pt: "Salta abrindo pernas e braços ao mesmo tempo, volta à posição inicial.", .en: "Jump while spreading your arms and legs at the same time, then return to start."],
 
         // Settings / About
         "settings.title": [.pt: "Definições", .en: "Settings"],

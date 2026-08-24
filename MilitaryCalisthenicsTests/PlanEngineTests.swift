@@ -107,6 +107,20 @@ final class PlanEngineTests: XCTestCase {
         XCTAssertGreaterThan(strengthMassCount, fatLossCount)
     }
 
+    func testEveryCatalogExerciseCueHasPortugueseAndEnglishTranslations() {
+        let allExercises = ExerciseCatalog.warmup + ExerciseCatalog.strengthBodyweight
+            + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
+            + ExerciseCatalog.circuit + ExerciseCatalog.core + ExerciseCatalog.mobility
+            + ExerciseCatalog.cooldown
+
+        for exercise in allExercises {
+            let cueKey = ExerciseMotion.cueKey(for: exercise.name)
+            let entry = Translations.table[cueKey]
+            XCTAssertNotNil(entry?[.pt], "Missing PT cue translation for \(cueKey) (\(exercise.name))")
+            XCTAssertNotNil(entry?[.en], "Missing EN cue translation for \(cueKey) (\(exercise.name))")
+        }
+    }
+
     func testEveryCatalogExerciseHasPortugueseAndEnglishTranslations() {
         let allExercises = ExerciseCatalog.warmup + ExerciseCatalog.strengthBodyweight
             + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes

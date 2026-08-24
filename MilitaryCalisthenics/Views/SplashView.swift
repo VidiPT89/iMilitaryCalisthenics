@@ -22,7 +22,7 @@ struct SplashView: View {
                         .offset(y: appear ? 0 : -6)
                         .opacity(appear ? 1 : 0)
 
-                    Image(systemName: "figure.pullup")
+                    Image(systemName: "figure.strengthtraining.traditional")
                         .font(.system(size: 42, weight: .bold))
                         .foregroundStyle(Theme.accentGradient)
                 }
