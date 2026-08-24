@@ -14,11 +14,20 @@ struct SplashView: View {
                     .scaleEffect(pulse ? 1.25 : 0.9)
                     .blur(radius: 10)
 
-                Image(systemName: "figure.strengthtraining.functional")
-                    .font(.system(size: 46, weight: .bold))
-                    .foregroundStyle(Theme.accentGradient)
-                    .scaleEffect(appear ? 1 : 0.6)
-                    .opacity(appear ? 1 : 0)
+                VStack(spacing: 2) {
+                    // Single rank chevron, matching the app icon's mark.
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundStyle(Theme.accent)
+                        .offset(y: appear ? 0 : -6)
+                        .opacity(appear ? 1 : 0)
+
+                    Image(systemName: "figure.pullup")
+                        .font(.system(size: 42, weight: .bold))
+                        .foregroundStyle(Theme.accentGradient)
+                }
+                .scaleEffect(appear ? 1 : 0.6)
+                .opacity(appear ? 1 : 0)
             }
             .frame(height: 110)
 

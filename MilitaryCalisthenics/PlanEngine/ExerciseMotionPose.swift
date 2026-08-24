@@ -105,7 +105,7 @@ enum ExerciseMotionPose {
             )
 
         case .lSit:
-            let bounce = 0.02 * s01
+            let bounce = 0.035 * s01
             return StickPose(
                 head: CGPoint(x: 0.20, y: 0.40 + bounce), neck: CGPoint(x: 0.28, y: 0.46 + bounce),
                 hip: CGPoint(x: 0.42, y: 0.62 + bounce),
@@ -192,7 +192,7 @@ enum ExerciseMotionPose {
             )
 
         case .plank:
-            let wobble = 0.01 * s
+            let wobble = 0.02 * s
             return StickPose(
                 head: CGPoint(x: 0.14, y: 0.42 + wobble), neck: CGPoint(x: 0.24, y: 0.44 + wobble),
                 hip: CGPoint(x: 0.60, y: 0.46 + wobble),
@@ -204,7 +204,7 @@ enum ExerciseMotionPose {
             )
 
         case .sidePlank:
-            let lift = 0.03 * s01
+            let lift = 0.045 * s01
             return StickPose(
                 head: CGPoint(x: 0.16, y: 0.30 - lift), neck: CGPoint(x: 0.26, y: 0.34 - lift),
                 hip: CGPoint(x: 0.58, y: 0.40 - lift),
@@ -264,14 +264,18 @@ enum ExerciseMotionPose {
             )
 
         case .staticHold:
-            let breathe = 0.015 * s01
+            // Seated/kneeling floor stretch (hamstring/quad stretch, child's
+            // pose, deep breathing) — these are grounded holds, not standing
+            // poses, with a visible chest-rise breathing motion.
+            let breathe = 0.035 * s01
             return StickPose(
-                head: CGPoint(x: 0.5, y: 0.16 - breathe), neck: CGPoint(x: 0.5, y: 0.26),
-                hip: CGPoint(x: 0.5, y: 0.56 + breathe),
-                elbowL: CGPoint(x: 0.38, y: 0.42), elbowR: CGPoint(x: 0.62, y: 0.42),
-                handL: CGPoint(x: 0.40, y: 0.52), handR: CGPoint(x: 0.60, y: 0.52),
-                kneeL: CGPoint(x: 0.44, y: 0.76), kneeR: CGPoint(x: 0.56, y: 0.76),
-                footL: CGPoint(x: 0.44, y: 0.94), footR: CGPoint(x: 0.56, y: 0.94)
+                head: CGPoint(x: 0.16, y: 0.58 - breathe * 0.6), neck: CGPoint(x: 0.26, y: 0.60 - breathe * 0.4),
+                hip: CGPoint(x: 0.56, y: 0.66),
+                elbowL: CGPoint(x: 0.30, y: 0.66 - breathe), elbowR: CGPoint(x: 0.32, y: 0.70 - breathe),
+                handL: CGPoint(x: 0.36, y: 0.78 - breathe * 1.4), handR: CGPoint(x: 0.40, y: 0.80 - breathe * 1.4),
+                kneeL: CGPoint(x: 0.74, y: 0.60), kneeR: CGPoint(x: 0.78, y: 0.62),
+                footL: CGPoint(x: 0.92, y: 0.66), footR: CGPoint(x: 0.94, y: 0.70),
+                horizontal: true
             )
         }
     }
