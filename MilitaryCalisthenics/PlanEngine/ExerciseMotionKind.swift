@@ -25,6 +25,13 @@ enum ExerciseMotionKind {
     case legSwing
     case gentleSway
     case staticHold
+    case hamstringStretch
+    case quadStretch
+    case childsPose
+    case deepBreathing
+    case catCow
+    case hipOpen
+    case shoulderRoll
 }
 
 enum ExerciseMotion {
@@ -74,13 +81,13 @@ enum ExerciseMotion {
         "exercise.sidePlank": (.sidePlank, "cue.sidePlank"),
         "exercise.mountainClimbersCore": (.mountainClimber, "cue.mountainClimber"),
 
-        "exercise.hipOpeners": (.gentleSway, "cue.hipOpeners"),
-        "exercise.catCow": (.gentleSway, "cue.catCow"),
-        "exercise.shoulderCircles": (.armCircle, "cue.shoulderCircles"),
+        "exercise.hipOpeners": (.hipOpen, "cue.hipOpeners"),
+        "exercise.catCow": (.catCow, "cue.catCow"),
+        "exercise.shoulderCircles": (.shoulderRoll, "cue.shoulderCircles"),
 
-        "exercise.hamstringStretch": (.staticHold, "cue.hamstringStretch"),
-        "exercise.quadStretch": (.staticHold, "cue.quadStretch"),
-        "exercise.childsPose": (.staticHold, "cue.childsPose"),
-        "exercise.deepBreathing": (.staticHold, "cue.deepBreathing"),
+        "exercise.hamstringStretch": (.hamstringStretch, "cue.hamstringStretch"),
+        "exercise.quadStretch": (.quadStretch, "cue.quadStretch"),
+        "exercise.childsPose": (.childsPose, "cue.childsPose"),
+        "exercise.deepBreathing": (.deepBreathing, "cue.deepBreathing"),
     ]
 }

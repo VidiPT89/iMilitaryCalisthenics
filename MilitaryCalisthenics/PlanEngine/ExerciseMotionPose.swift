@@ -264,9 +264,8 @@ enum ExerciseMotionPose {
             )
 
         case .staticHold:
-            // Seated/kneeling floor stretch (hamstring/quad stretch, child's
-            // pose, deep breathing) — these are grounded holds, not standing
-            // poses, with a visible chest-rise breathing motion.
+            // Generic grounded/seated hold, used as a fallback for anything
+            // not explicitly mapped below.
             let breathe = 0.035 * s01
             return StickPose(
                 head: CGPoint(x: 0.16, y: 0.58 - breathe * 0.6), neck: CGPoint(x: 0.26, y: 0.60 - breathe * 0.4),
@@ -276,6 +275,107 @@ enum ExerciseMotionPose {
                 kneeL: CGPoint(x: 0.74, y: 0.60), kneeR: CGPoint(x: 0.78, y: 0.62),
                 footL: CGPoint(x: 0.92, y: 0.66), footR: CGPoint(x: 0.94, y: 0.70),
                 horizontal: true
+            )
+
+        case .hamstringStretch:
+            // Seated on the floor, legs extended flat, torso hinging toward
+            // the toes and back on a slow breathing cycle.
+            let reach = 0.05 * s01
+            return StickPose(
+                head: CGPoint(x: 0.30 - reach * 0.4, y: 0.42 + reach), neck: CGPoint(x: 0.36 - reach * 0.3, y: 0.46 + reach * 0.8),
+                hip: CGPoint(x: 0.44, y: 0.66),
+                elbowL: CGPoint(x: 0.42, y: 0.56 + reach), elbowR: CGPoint(x: 0.44, y: 0.60 + reach),
+                handL: CGPoint(x: 0.60 + reach * 1.6, y: 0.66), handR: CGPoint(x: 0.62 + reach * 1.6, y: 0.68),
+                kneeL: CGPoint(x: 0.72, y: 0.66), kneeR: CGPoint(x: 0.74, y: 0.68),
+                footL: CGPoint(x: 0.96, y: 0.64), footR: CGPoint(x: 0.98, y: 0.66),
+                horizontal: true
+            )
+
+        case .quadStretch:
+            // Standing on one leg, the other foot pulled up behind toward
+            // the glute, held with the same-side hand; free arm out for balance.
+            let pull = 0.03 * s01
+            return StickPose(
+                head: CGPoint(x: 0.5, y: 0.14), neck: CGPoint(x: 0.5, y: 0.24),
+                hip: CGPoint(x: 0.5, y: 0.54),
+                elbowL: CGPoint(x: 0.30, y: 0.44), elbowR: CGPoint(x: 0.60, y: 0.70 - pull * 2),
+                handL: CGPoint(x: 0.22, y: 0.38), handR: CGPoint(x: 0.58, y: 0.86 - pull * 3),
+                kneeL: CGPoint(x: 0.46, y: 0.72), kneeR: CGPoint(x: 0.60, y: 0.68),
+                footL: CGPoint(x: 0.44, y: 0.94), footR: CGPoint(x: 0.58, y: 0.88 - pull * 3),
+                horizontal: false
+            )
+
+        case .childsPose:
+            // Kneeling, hips sunk back toward the heels, arms extended
+            // forward flat on the floor, forehead low — a resting floor pose.
+            let settle = 0.02 * s01
+            return StickPose(
+                head: CGPoint(x: 0.90, y: 0.70 - settle), neck: CGPoint(x: 0.80, y: 0.66 - settle),
+                hip: CGPoint(x: 0.40, y: 0.62),
+                elbowL: CGPoint(x: 0.66, y: 0.60), elbowR: CGPoint(x: 0.68, y: 0.64),
+                handL: CGPoint(x: 0.96, y: 0.58 - settle), handR: CGPoint(x: 0.98, y: 0.62 - settle),
+                kneeL: CGPoint(x: 0.28, y: 0.62), kneeR: CGPoint(x: 0.26, y: 0.66),
+                footL: CGPoint(x: 0.16, y: 0.68), footR: CGPoint(x: 0.14, y: 0.72),
+                horizontal: true
+            )
+
+        case .deepBreathing:
+            // Seated cross-legged, upright, hands resting on the knees with
+            // a slow, clearly visible chest/shoulder rise on the inhale.
+            let inhale = 0.045 * s01
+            return StickPose(
+                head: CGPoint(x: 0.5, y: 0.18 - inhale), neck: CGPoint(x: 0.5, y: 0.28 - inhale * 0.6),
+                hip: CGPoint(x: 0.5, y: 0.62),
+                elbowL: CGPoint(x: 0.36, y: 0.42 - inhale * 0.5), elbowR: CGPoint(x: 0.64, y: 0.42 - inhale * 0.5),
+                handL: CGPoint(x: 0.40, y: 0.58), handR: CGPoint(x: 0.60, y: 0.58),
+                kneeL: CGPoint(x: 0.30, y: 0.72), kneeR: CGPoint(x: 0.70, y: 0.72),
+                footL: CGPoint(x: 0.42, y: 0.66), footR: CGPoint(x: 0.58, y: 0.66),
+                horizontal: false
+            )
+
+        case .catCow:
+            // On hands and knees, the spine arching up (cat) and dipping
+            // down (cow) as the belly line rises and falls between them.
+            let arch = 0.06 * s
+            return StickPose(
+                head: CGPoint(x: 0.90, y: 0.44 - arch * 1.6), neck: CGPoint(x: 0.78, y: 0.48 - arch),
+                hip: CGPoint(x: 0.34, y: 0.48 + arch * 0.6),
+                elbowL: CGPoint(x: 0.66, y: 0.60), elbowR: CGPoint(x: 0.68, y: 0.64),
+                handL: CGPoint(x: 0.96, y: 0.80), handR: CGPoint(x: 0.98, y: 0.80),
+                kneeL: CGPoint(x: 0.22, y: 0.62), kneeR: CGPoint(x: 0.20, y: 0.66),
+                footL: CGPoint(x: 0.14, y: 0.80), footR: CGPoint(x: 0.10, y: 0.80),
+                horizontal: true
+            )
+
+        case .hipOpen:
+            // Standing on one leg, the other knee lifted and swept outward
+            // in a controlled hip-abduction arc, arms out for balance.
+            let sweep = s01
+            return StickPose(
+                head: CGPoint(x: 0.5, y: 0.14), neck: CGPoint(x: 0.5, y: 0.24),
+                hip: CGPoint(x: 0.5, y: 0.54),
+                elbowL: CGPoint(x: 0.26, y: 0.44), elbowR: CGPoint(x: 0.74, y: 0.44),
+                handL: CGPoint(x: 0.18, y: 0.46), handR: CGPoint(x: 0.82, y: 0.46),
+                kneeL: CGPoint(x: 0.46, y: 0.76), kneeR: CGPoint(x: 0.62 + sweep * 0.20, y: 0.58 - sweep * 0.06),
+                footL: CGPoint(x: 0.44, y: 0.96), footR: CGPoint(x: 0.72 + sweep * 0.22, y: 0.50 - sweep * 0.04),
+                horizontal: false
+            )
+
+        case .shoulderRoll:
+            // Standing, arms relaxed at the sides, shoulders rolling
+            // forward-up-back-down in a small tight circuit near the neck —
+            // distinct from arm-circle's wide, straight-arm sweep.
+            let angle = phase * 2 * .pi
+            let rollX = sin(angle) * 0.05
+            let rollY = cos(angle) * 0.03
+            return StickPose(
+                head: CGPoint(x: 0.5, y: 0.16), neck: CGPoint(x: 0.5, y: 0.26),
+                hip: CGPoint(x: 0.5, y: 0.58),
+                elbowL: CGPoint(x: 0.34 + rollX, y: 0.38 - rollY), elbowR: CGPoint(x: 0.66 - rollX, y: 0.38 - rollY),
+                handL: CGPoint(x: 0.32 + rollX, y: 0.56), handR: CGPoint(x: 0.68 - rollX, y: 0.56),
+                kneeL: CGPoint(x: 0.44, y: 0.78), kneeR: CGPoint(x: 0.56, y: 0.78),
+                footL: CGPoint(x: 0.44, y: 0.96), footR: CGPoint(x: 0.56, y: 0.96),
+                horizontal: false
             )
         }
     }
