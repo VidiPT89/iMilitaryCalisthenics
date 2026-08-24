@@ -183,27 +183,44 @@ private struct ExerciseRow: View {
     let exercise: PlannedExercise
     let isDone: Bool
     let toggle: () -> Void
+    @State private var showingDemo = false
 
     var body: some View {
-        Button(action: toggle) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(t(exercise.name))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(isDone ? Theme.textFaint : Theme.text)
-                        .strikethrough(isDone)
-                    Text(detailText)
-                        .font(.caption)
-                        .foregroundStyle(Theme.textDim)
-                }
-                Spacer()
-                Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(isDone ? Theme.ok : Theme.textFaint)
-                    .scaleEffect(isDone ? 1.1 : 1)
+        HStack(spacing: 12) {
+            Button {
+                showingDemo = true
+            } label: {
+                ExerciseDemoThumbnail(motion: ExerciseMotion.kind(for: exercise.name))
             }
+            .buttonStyle(.plain)
+
+            Button(action: toggle) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(t(exercise.name))
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(isDone ? Theme.textFaint : Theme.text)
+                            .strikethrough(isDone)
+                        Text(detailText)
+                            .font(.caption)
+                            .foregroundStyle(Theme.textDim)
+                    }
+                    Spacer()
+                    Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22))
+                        .foregroundStyle(isDone ? Theme.ok : Theme.textFaint)
+                        .scaleEffect(isDone ? 1.1 : 1)
+                }
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+        .sheet(isPresented: $showingDemo) {
+            ExerciseDemoSheet(
+                exerciseNameKey: exercise.name,
+                motion: ExerciseMotion.kind(for: exercise.name),
+                cueKey: ExerciseMotion.cueKey(for: exercise.name)
+            )
+        }
     }
 
     private var detailText: String {

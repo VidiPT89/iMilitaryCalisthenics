@@ -13,6 +13,7 @@
 - ✅ Full military calisthenics catalog: push-ups, pull-ups, dips, squats, burpees, sprints, planks and more
 - ✅ Warm-up → strength → circuit/HIIT → core → cool-down structure for every session
 - ✅ Animated progress ring, spring transitions and satisfying per-exercise completion states
+- ✅ Looping stick-figure demo animation and coaching cue for every exercise, drawn natively — no video files, fully offline
 - ✅ In-app PT-PT / EN language switch, independent of the device locale
 - ✅ Fully offline, local persistence with SwiftData
 
