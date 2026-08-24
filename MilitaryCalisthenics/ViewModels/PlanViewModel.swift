@@ -53,6 +53,39 @@ final class PlanViewModel {
         reloadWeightHistory()
     }
 
+    /// Removes a logged weight entry. If it was the most recent one, the
+    /// active profile's weight (and the generated plan) reverts to the
+    /// new most-recent entry, or is left unchanged if no entries remain.
+    func deleteWeightEntry(_ entry: WeightEntry) {
+        guard let context else { return }
+        let wasMostRecent = weightHistory.last === entry
+        context.delete(entry)
+        try? context.save()
+        reloadWeightHistory()
+
+        guard wasMostRecent, var profile, let newest = weightHistory.last else { return }
+        profile.weightKg = newest.weightKg
+        self.profile = profile
+        storedProfile?.update(from: profile)
+        try? context.save()
+        plan = PlanEngine.generate(for: profile)
+    }
+
+    /// Re-runs the plan engine against the current profile without
+    /// changing any inputs and resets progress back to week 1 — a lighter
+    /// alternative to full re-onboarding for restarting the current plan.
+    /// `PlanEngine` is deterministic (same profile -> same plan), so this
+    /// intentionally does not produce a randomized variation.
+    func regeneratePlan() {
+        guard let profile else { return }
+        completedExerciseIDs = []
+        storedProfile?.completedExerciseIDs = []
+        selectedWeekIndex = 0
+        selectedDayIndex = 0
+        try? context?.save()
+        plan = PlanEngine.generate(for: profile)
+    }
+
     func save(profile: UserProfile) {
         guard let context else { return }
         self.profile = profile

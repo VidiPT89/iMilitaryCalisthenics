@@ -17,6 +17,7 @@ struct WeightProgressView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     trendCard
                     logCard
+                    historyCard
                 }
                 .padding(20)
             }
@@ -110,6 +111,51 @@ struct WeightProgressView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(.plain)
+        }
+        .padding(16)
+        .panelBackground()
+    }
+
+    private var historyCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(t("progress.history"))
+                .font(.subheadline)
+                .foregroundStyle(Theme.textDim)
+
+            if viewModel.weightHistory.isEmpty {
+                Text(t("progress.history.empty"))
+                    .font(.footnote)
+                    .foregroundStyle(Theme.textFaint)
+            } else {
+                let ordered = Array(viewModel.weightHistory.reversed())
+                VStack(spacing: 0) {
+                    ForEach(Array(ordered.enumerated()), id: \.element.persistentModelID) { index, entry in
+                        HStack {
+                            Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+                                .foregroundStyle(Theme.textDim)
+                            Spacer()
+                            Text(String(format: "%.1f kg", entry.weightKg))
+                                .foregroundStyle(Theme.text)
+                                .fontWeight(.semibold)
+                            Button {
+                                withAnimation(Theme.springAnimation) {
+                                    viewModel.deleteWeightEntry(entry)
+                                }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(Theme.danger)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.leading, 12)
+                            .accessibilityLabel(t("common.delete"))
+                        }
+                        .padding(.vertical, 10)
+                        if index != ordered.count - 1 {
+                            Divider().overlay(Theme.textFaint.opacity(0.2))
+                        }
+                    }
+                }
+            }
         }
         .padding(16)
         .panelBackground()

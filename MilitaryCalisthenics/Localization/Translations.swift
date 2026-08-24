@@ -36,6 +36,7 @@ enum Translations {
         "plan.week": [.pt: "Semana", .en: "Week"],
         "plan.deload": [.pt: "Semana de recuperação", .en: "Deload week"],
         "plan.regenerate": [.pt: "Editar perfil", .en: "Edit profile"],
+        "settings.regeneratePlan": [.pt: "Recomeçar plano atual", .en: "Restart current plan"],
         "plan.empty": [.pt: "Ainda não tens um plano. Cria o teu perfil para começar.", .en: "You don't have a plan yet. Set up your profile to get started."],
 
         "block.warmup": [.pt: "Aquecimento", .en: "Warm-up"],
@@ -140,12 +141,15 @@ enum Translations {
         "settings.about": [.pt: "Sobre", .en: "About"],
 
         "common.close": [.pt: "Fechar", .en: "Close"],
+        "common.delete": [.pt: "Eliminar", .en: "Delete"],
         "progress.title": [.pt: "Progresso", .en: "Progress"],
         "progress.trend": [.pt: "Evolução do peso", .en: "Weight trend"],
         "progress.trend.empty": [.pt: "Regista pelo menos duas pesagens para veres a evolução.", .en: "Log at least two weigh-ins to see your trend."],
         "progress.log": [.pt: "Registar peso", .en: "Log weight"],
         "progress.date": [.pt: "Data", .en: "Date"],
         "progress.save": [.pt: "Guardar e recalcular plano", .en: "Save & recalculate plan"],
+        "progress.history": [.pt: "Histórico de pesagens", .en: "Weigh-in history"],
+        "progress.history.empty": [.pt: "Ainda sem registos de peso.", .en: "No weight entries yet."],
         "about.developedBy": [.pt: "Desenvolvido por David Arsénio Martins", .en: "Developed by David Arsénio Martins"],
 
         "tab.plan": [.pt: "Plano", .en: "Plan"],

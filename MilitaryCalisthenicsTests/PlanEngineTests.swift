@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import MilitaryCalisthenics
 
 final class PlanEngineTests: XCTestCase {
@@ -93,6 +94,30 @@ final class PlanEngineTests: XCTestCase {
         let planAfter = PlanEngine.generate(for: updated)
 
         XCTAssertNotEqual(totalStrengthReps(planBefore), totalStrengthReps(planAfter))
+    }
+
+    func testDeletingMostRecentWeightEntryRecalibratesToPreviousOne() throws {
+        let container = try ModelContainer(
+            for: PersistedProfile.self, WeightEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = ModelContext(container)
+        let viewModel = PlanViewModel()
+        viewModel.load(context: context)
+        viewModel.save(profile: makeProfile(weightKg: 78))
+
+        viewModel.logWeight(85, on: Date(timeIntervalSince1970: 1))
+        viewModel.logWeight(90, on: Date(timeIntervalSince1970: 2))
+        XCTAssertEqual(viewModel.profile?.weightKg, 90)
+        XCTAssertEqual(viewModel.weightHistory.count, 2)
+
+        guard let mostRecent = viewModel.weightHistory.last else {
+            return XCTFail("expected a most recent weight entry")
+        }
+        viewModel.deleteWeightEntry(mostRecent)
+
+        XCTAssertEqual(viewModel.weightHistory.count, 1)
+        XCTAssertEqual(viewModel.profile?.weightKg, 85, "profile should revert to the new most-recent entry")
     }
 
     func testStrengthMassGoalRequestsMoreExercisesThanOtherGoals() {

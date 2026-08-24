@@ -17,6 +17,7 @@ struct SettingsView: View {
                 languageCard
                 progressButton
                 remindersCard
+                regeneratePlanButton
                 editProfileButton
                 aboutCard
             }
@@ -134,6 +135,23 @@ struct SettingsView: View {
         }
         .padding(16)
         .panelBackground()
+    }
+
+    private var regeneratePlanButton: some View {
+        Button {
+            withAnimation(Theme.springAnimation) { viewModel.regeneratePlan() }
+        } label: {
+            HStack {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                Text(t("settings.regeneratePlan"))
+                Spacer()
+            }
+            .foregroundStyle(Theme.text)
+            .padding(16)
+            .panelBackground()
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.profile == nil)
     }
 
     private var editProfileButton: some View {
