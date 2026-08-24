@@ -80,6 +80,10 @@ xcodebuild -project MilitaryCalisthenics.xcodeproj \
   test
 ```
 
+## 🔒 Privacy
+
+Everything stays on-device. See [PRIVACY.md](PRIVACY.md) for the full policy.
+
 ## 📄 License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for details.
