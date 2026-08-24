@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     var viewModel: PlanViewModel
     @State private var lang = LocalizationManager.shared
+    @State private var reminders = ReminderManager.shared
     @State private var showProgress = false
 
     var body: some View {
@@ -15,6 +16,7 @@ struct SettingsView: View {
 
                 languageCard
                 progressButton
+                remindersCard
                 editProfileButton
                 aboutCard
             }
@@ -68,6 +70,60 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            }
+        }
+        .padding(16)
+        .panelBackground()
+    }
+
+    private var remindersCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(t("reminders.title"))
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.textDim)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { reminders.isEnabled },
+                    set: { newValue in
+                        reminders.isEnabled = newValue
+                        Task {
+                            if newValue {
+                                let granted = await reminders.requestAuthorizationAndSchedule(
+                                    daysPerWeek: viewModel.profile?.daysPerWeek ?? 4
+                                )
+                                if !granted { reminders.isEnabled = false }
+                            } else {
+                                reminders.disable()
+                            }
+                        }
+                    }
+                ))
+                .tint(Theme.accent)
+                .labelsHidden()
+            }
+
+            if reminders.isEnabled {
+                DatePicker(
+                    t("reminders.time"),
+                    selection: Binding(
+                        get: {
+                            Calendar.current.date(
+                                bySettingHour: reminders.hour, minute: reminders.minute, second: 0, of: Date()
+                            ) ?? Date()
+                        },
+                        set: { newDate in
+                            let comps = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                            reminders.hour = comps.hour ?? 18
+                            reminders.minute = comps.minute ?? 0
+                            Task { await reminders.reschedule(daysPerWeek: viewModel.profile?.daysPerWeek ?? 4) }
+                        }
+                    ),
+                    displayedComponents: .hourAndMinute
+                )
+                .foregroundStyle(Theme.text)
+                .datePickerStyle(.compact)
+                .tint(Theme.accent)
             }
         }
         .padding(16)

@@ -16,6 +16,8 @@
 - ✅ Looping stick-figure demo animation and coaching cue for every exercise, drawn natively — no video files, fully offline
 - ✅ Correct exercise posture in the demos — floor exercises animate on a horizontal axis, standing exercises on a vertical one
 - ✅ Weight log with trend sparkline — logging a new weigh-in recalibrates the plan's intensity to match, no re-onboarding needed
+- ✅ Share a day's or week's workout as plain text via the native share sheet
+- ✅ Optional local workout reminders on your training days, at a time you pick
 - ✅ In-app PT-PT / EN language switch, independent of the device locale
 - ✅ Fully offline, local persistence with SwiftData
 - ✅ Native app icon and dark, brand-matched launch screen — no white flash on cold start

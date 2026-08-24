@@ -149,5 +149,15 @@ enum Translations {
 
         "tab.plan": [.pt: "Plano", .en: "Plan"],
         "tab.settings": [.pt: "Definições", .en: "Settings"],
+
+        "export.footer": [.pt: "Gerado com Military Calisthenics", .en: "Generated with Military Calisthenics"],
+        "export.day": [.pt: "Partilhar treino de hoje", .en: "Share today's workout"],
+        "export.week": [.pt: "Partilhar semana", .en: "Share week"],
+
+        "reminders.title": [.pt: "Lembretes de treino", .en: "Workout reminders"],
+        "reminders.enable": [.pt: "Ativar lembretes", .en: "Enable reminders"],
+        "reminders.time": [.pt: "Hora do lembrete", .en: "Reminder time"],
+        "reminders.denied": [.pt: "Autoriza as notificações nas Definições do iPhone para receberes lembretes.", .en: "Allow notifications in iPhone Settings to receive reminders."],
+        "reminders.body": [.pt: "Hoje é dia de treino. Vamos a isto.", .en: "It's training day. Let's get to it."],
     ]
 }

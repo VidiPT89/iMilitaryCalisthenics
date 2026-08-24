@@ -48,6 +48,24 @@ struct PlanDashboardView: View {
                 }
             }
             Spacer()
+            if let week = viewModel.currentWeek {
+                Menu {
+                    if let day = viewModel.currentDay {
+                        ShareLink(item: PlanTextExporter.text(for: day, weekIndex: week.index)) {
+                            Label(t("export.day"), systemImage: "square.and.arrow.up")
+                        }
+                    }
+                    ShareLink(item: PlanTextExporter.text(for: week)) {
+                        Label(t("export.week"), systemImage: "square.and.arrow.up.on.square")
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Theme.accent)
+                        .padding(10)
+                        .background(Circle().fill(Theme.panel))
+                }
+            }
         }
     }
 
