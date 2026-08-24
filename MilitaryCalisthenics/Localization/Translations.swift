@@ -147,8 +147,6 @@ enum Translations {
         "progress.date": [.pt: "Data", .en: "Date"],
         "progress.save": [.pt: "Guardar e recalcular plano", .en: "Save & recalculate plan"],
         "about.developedBy": [.pt: "Desenvolvido por David Arsénio Martins", .en: "Developed by David Arsénio Martins"],
-        "about.website": [.pt: "Website", .en: "Website"],
-        "about.github": [.pt: "GitHub", .en: "GitHub"],
 
         "tab.plan": [.pt: "Plano", .en: "Plan"],
         "tab.settings": [.pt: "Definições", .en: "Settings"],

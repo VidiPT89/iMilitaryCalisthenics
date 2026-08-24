@@ -212,6 +212,8 @@ private struct ExerciseRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("exercise.demoThumbnail.\(exercise.name)")
+            .accessibilityLabel(t(exercise.name))
+            .accessibilityAddTraits(.isButton)
 
             Button(action: toggle) {
                 HStack {
@@ -233,6 +235,10 @@ private struct ExerciseRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("exercise.toggle.\(exercise.name)")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(t(exercise.name)), \(detailText)")
+            .accessibilityValue(isDone ? t("exercise.markDone") : "")
+            .accessibilityAddTraits(.isButton)
         }
         .sheet(isPresented: $showingDemo) {
             ExerciseDemoSheet(

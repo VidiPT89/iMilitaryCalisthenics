@@ -103,6 +103,12 @@ struct SettingsView: View {
                 .labelsHidden()
             }
 
+            if reminders.permissionDenied && !reminders.isEnabled {
+                Text(t("reminders.denied"))
+                    .font(.caption)
+                    .foregroundStyle(Theme.danger)
+            }
+
             if reminders.isEnabled {
                 DatePicker(
                     t("reminders.time"),

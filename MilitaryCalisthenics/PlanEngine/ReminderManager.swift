@@ -5,6 +5,10 @@ import UserNotifications
 final class ReminderManager {
     static let shared = ReminderManager()
 
+    /// Set when the user declines the system notification permission prompt,
+    /// so the UI can explain why the toggle reverted instead of failing silently.
+    var permissionDenied = false
+
     var isEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: "reminders.enabled") }
         set { UserDefaults.standard.set(newValue, forKey: "reminders.enabled") }
@@ -31,10 +35,12 @@ final class ReminderManager {
         let center = UNUserNotificationCenter.current()
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            permissionDenied = !granted
             guard granted else { return false }
             await reschedule(daysPerWeek: daysPerWeek)
             return true
         } catch {
+            permissionDenied = true
             return false
         }
     }
