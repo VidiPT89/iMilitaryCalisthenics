@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     var viewModel: PlanViewModel
+    let theme = Theme.shared
     @State private var selectedTab = 0
 
     var body: some View {
@@ -14,12 +15,12 @@ struct MainTabView: View {
                         .transition(.opacity)
                 }
             }
-            .animation(Theme.springAnimation, value: selectedTab)
+            .animation(theme.springAnimation, value: selectedTab)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             tabBar
         }
-        .background(Theme.background)
+        .background(theme.background)
     }
 
     private var tabBar: some View {
@@ -29,13 +30,13 @@ struct MainTabView: View {
         }
         .padding(.top, 10)
         .padding(.bottom, 20)
-        .background(Theme.panel.ignoresSafeArea(edges: .bottom))
-        .overlay(Rectangle().fill(Theme.accent.opacity(0.08)).frame(height: 1), alignment: .top)
+        .background(theme.panel.ignoresSafeArea(edges: .bottom))
+        .overlay(Rectangle().fill(theme.accent.opacity(0.08)).frame(height: 1), alignment: .top)
     }
 
     private func tabItem(index: Int, icon: String, labelKey: String) -> some View {
         Button {
-            withAnimation(Theme.springAnimation) { selectedTab = index }
+            withAnimation(theme.springAnimation) { selectedTab = index }
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: icon)
@@ -43,7 +44,7 @@ struct MainTabView: View {
                 Text(t(labelKey))
                     .font(.caption2)
             }
-            .foregroundStyle(selectedTab == index ? Theme.accent : Theme.textFaint)
+            .foregroundStyle(selectedTab == index ? theme.accent : theme.textFaint)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

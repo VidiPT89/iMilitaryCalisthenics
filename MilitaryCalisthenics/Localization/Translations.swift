@@ -137,6 +137,10 @@ enum Translations {
         // Settings / About
         "settings.title": [.pt: "Definições", .en: "Settings"],
         "settings.language": [.pt: "Idioma", .en: "Language"],
+        "settings.appearance": [.pt: "Aparência", .en: "Appearance"],
+        "settings.appearance.light": [.pt: "Claro", .en: "Light"],
+        "settings.appearance.dark": [.pt: "Escuro", .en: "Dark"],
+        "settings.appearance.system": [.pt: "Sistema", .en: "System"],
         "settings.progress": [.pt: "Peso e progresso", .en: "Weight & progress"],
         "settings.about": [.pt: "Sobre", .en: "About"],
 

@@ -3,13 +3,15 @@ import SwiftData
 
 struct RootView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var systemColorScheme
+    let theme = Theme.shared
     @State private var viewModel = PlanViewModel()
     @State private var showSplash = true
     @State private var lang = LocalizationManager.shared
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
 
             if showSplash {
                 SplashView()
@@ -25,11 +27,16 @@ struct RootView: View {
                     .transition(.opacity)
             }
         }
+        .preferredColorScheme(theme.mode == .system ? nil : (theme.mode == .dark ? .dark : .light))
         .onAppear {
             viewModel.load(context: modelContext)
+            theme.systemIsDark = systemColorScheme == .dark
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
-                withAnimation(Theme.springAnimation) { showSplash = false }
+                withAnimation(theme.springAnimation) { showSplash = false }
             }
+        }
+        .onChange(of: systemColorScheme) { _, newValue in
+            theme.systemIsDark = newValue == .dark
         }
     }
 }

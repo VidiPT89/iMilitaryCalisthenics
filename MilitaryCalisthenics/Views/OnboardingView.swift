@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     var viewModel: PlanViewModel
+    let theme = Theme.shared
 
     @State private var weightText = "75"
     @State private var heightText = "175"
@@ -19,7 +20,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 26) {
                 Text(t("onboarding.title"))
                     .font(.largeTitle.bold())
-                    .foregroundStyle(Theme.text)
+                    .foregroundStyle(theme.text)
                     .padding(.top, 24)
                     .opacity(appear ? 1 : 0)
                     .offset(y: appear ? 0 : 12)
@@ -34,7 +35,7 @@ struct OnboardingView: View {
                 if showError {
                     Text(t("onboarding.error.range"))
                         .font(.footnote)
-                        .foregroundStyle(Theme.danger)
+                        .foregroundStyle(theme.danger)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
@@ -43,9 +44,9 @@ struct OnboardingView: View {
             }
             .padding(.horizontal, 20)
         }
-        .background(Theme.background)
+        .background(theme.background)
         .onAppear {
-            withAnimation(Theme.springAnimation.delay(0.1)) { appear = true }
+            withAnimation(theme.springAnimation.delay(0.1)) { appear = true }
         }
     }
 
@@ -62,16 +63,16 @@ struct OnboardingView: View {
     private func fieldRow(title: String, text: Binding<String>, suffix: String) -> some View {
         HStack {
             Text(title)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
             Spacer()
             TextField("", text: text)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
-                .foregroundStyle(Theme.text)
+                .foregroundStyle(theme.text)
                 .frame(width: 80)
             if !suffix.isEmpty {
                 Text(suffix)
-                    .foregroundStyle(Theme.textFaint)
+                    .foregroundStyle(theme.textFaint)
                     .font(.caption)
             }
         }
@@ -82,19 +83,19 @@ struct OnboardingView: View {
     private var daysSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(t("onboarding.days"))
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
                 .font(.subheadline)
             HStack(spacing: 10) {
                 ForEach(3...6, id: \.self) { day in
                     Button {
-                        withAnimation(Theme.springAnimation) { daysPerWeek = day }
+                        withAnimation(theme.springAnimation) { daysPerWeek = day }
                     } label: {
                         Text("\(day)")
                             .font(.headline)
                             .frame(width: 44, height: 44)
-                            .foregroundStyle(daysPerWeek == day ? Color.black : Theme.text)
+                            .foregroundStyle(daysPerWeek == day ? Color.black : theme.text)
                             .background(
-                                Circle().fill(daysPerWeek == day ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.panel))
+                                Circle().fill(daysPerWeek == day ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel))
                             )
                             .scaleEffect(daysPerWeek == day ? 1.08 : 1)
                     }
@@ -108,7 +109,7 @@ struct OnboardingView: View {
     private func selectorSection<T: Identifiable & Hashable>(title: String, selection: Binding<T>, labelKey: @escaping (T) -> String) -> some View where T: CaseIterable, T.AllCases == [T] {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
                 .font(.subheadline)
             VStack(spacing: 8) {
                 ForEach(T.allCases) { option in
@@ -116,7 +117,7 @@ struct OnboardingView: View {
                         label: t(labelKey(option)),
                         isSelected: selection.wrappedValue == option
                     ) {
-                        withAnimation(Theme.springAnimation) { selection.wrappedValue = option }
+                        withAnimation(theme.springAnimation) { selection.wrappedValue = option }
                     }
                 }
             }
@@ -133,9 +134,9 @@ struct OnboardingView: View {
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Theme.accentGradient)
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
-                .shadow(color: Theme.accent.opacity(0.35), radius: 14, y: 6)
+                .background(theme.accentGradient)
+                .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
+                .shadow(color: theme.accent.opacity(0.35), radius: 14, y: 6)
         }
         .buttonStyle(PressableButtonStyle())
         .opacity(appear ? 1 : 0)
@@ -171,27 +172,28 @@ private struct OptionRow: View {
     let label: String
     let isSelected: Bool
     let action: () -> Void
+    let theme = Theme.shared
 
     var body: some View {
         Button(action: action) {
             HStack {
                 Text(label)
-                    .foregroundStyle(isSelected ? Theme.text : Theme.textDim)
+                    .foregroundStyle(isSelected ? theme.text : theme.textDim)
                 Spacer()
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(theme.accent)
                         .transition(.scale.combined(with: .opacity))
                 }
             }
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(isSelected ? Theme.panel2 : Theme.panel)
+                    .fill(isSelected ? theme.panel2 : theme.panel)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(isSelected ? Theme.accent.opacity(0.6) : .clear, lineWidth: 1.5)
+                    .stroke(isSelected ? theme.accent.opacity(0.6) : .clear, lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)

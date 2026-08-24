@@ -22,6 +22,7 @@
 - ✅ In-app PT-PT / EN language switch, independent of the device locale
 - ✅ Fully offline, local persistence with SwiftData
 - ✅ Native app icon and dark, brand-matched launch screen — no white flash on cold start
+- ✅ Light, Dark and System appearance modes, both palettes matching the ividi.dev brand identity
 
 ## 🛠️ Tech Stack
 

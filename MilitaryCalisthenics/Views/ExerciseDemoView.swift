@@ -8,6 +8,7 @@ struct ExerciseDemoView: View {
     let motion: ExerciseMotionKind
     var lineWidth: CGFloat = 4
     var cycleDuration: Double = 1.6
+    let theme = Theme.shared
 
     var body: some View {
         TimelineView(.animation) { timeline in
@@ -35,7 +36,7 @@ struct ExerciseDemoView: View {
         }
 
         let stroke = StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
-        let limbColor = Theme.accent
+        let limbColor = theme.accent
 
         var limbs = Path()
         limbs.move(to: point(pose.neck)); limbs.addLine(to: point(pose.hip))
@@ -55,19 +56,20 @@ struct ExerciseDemoView: View {
         var ground = Path()
         ground.move(to: CGPoint(x: 0, y: groundY))
         ground.addLine(to: CGPoint(x: size.width, y: groundY))
-        ctx.stroke(ground, with: .color(Theme.textFaint.opacity(0.25)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+        ctx.stroke(ground, with: .color(theme.textFaint.opacity(0.25)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
     }
 }
 
 /// Small looping thumbnail shown inline in an exercise row.
 struct ExerciseDemoThumbnail: View {
     let motion: ExerciseMotionKind
+    let theme = Theme.shared
 
     var body: some View {
         ExerciseDemoView(motion: motion, lineWidth: 2.5)
             .frame(width: 44, height: 44)
             .padding(6)
-            .background(Theme.panel2)
+            .background(theme.panel2)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
@@ -77,6 +79,7 @@ struct ExerciseDemoSheet: View {
     let exerciseNameKey: String
     let motion: ExerciseMotionKind
     let cueKey: String
+    let theme = Theme.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -84,14 +87,14 @@ struct ExerciseDemoSheet: View {
             HStack {
                 Text(t(exerciseNameKey))
                     .font(.title3.bold())
-                    .foregroundStyle(Theme.text)
+                    .foregroundStyle(theme.text)
                 Spacer()
                 Button {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Theme.textFaint)
+                        .foregroundStyle(theme.textFaint)
                 }
             }
 
@@ -99,15 +102,15 @@ struct ExerciseDemoSheet: View {
                 .frame(height: 220)
                 .frame(maxWidth: .infinity)
                 .padding(20)
-                .background(Theme.panel2)
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous))
+                .background(theme.panel2)
+                .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
 
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(theme.accent)
                 Text(t(cueKey))
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textDim)
+                    .foregroundStyle(theme.textDim)
                 Spacer()
             }
             .padding(16)
@@ -117,6 +120,6 @@ struct ExerciseDemoSheet: View {
         }
         .padding(20)
         .presentationDetents([.medium])
-        .background(Theme.background)
+        .background(theme.background)
     }
 }

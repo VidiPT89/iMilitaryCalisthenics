@@ -5,6 +5,7 @@ import SwiftUI
 /// (see `PlanViewModel.logWeight`).
 struct WeightProgressView: View {
     var viewModel: PlanViewModel
+    let theme = Theme.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var weightText: String = ""
@@ -21,12 +22,12 @@ struct WeightProgressView: View {
                 }
                 .padding(20)
             }
-            .background(Theme.background)
+            .background(theme.background)
             .navigationTitle(t("progress.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(t("common.close")) { dismiss() }
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(theme.accent)
                 }
             }
         }
@@ -39,12 +40,12 @@ struct WeightProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(t("progress.trend"))
                 .font(.subheadline)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
 
             if viewModel.weightHistory.count < 2 {
                 Text(t("progress.trend.empty"))
                     .font(.footnote)
-                    .foregroundStyle(Theme.textFaint)
+                    .foregroundStyle(theme.textFaint)
                     .frame(maxWidth: .infinity, minHeight: 100)
             } else {
                 WeightSparkline(entries: viewModel.weightHistory)
@@ -54,13 +55,13 @@ struct WeightProgressView: View {
                     if let first = viewModel.weightHistory.first {
                         Text(String(format: "%.1f kg", first.weightKg))
                             .font(.caption)
-                            .foregroundStyle(Theme.textFaint)
+                            .foregroundStyle(theme.textFaint)
                     }
                     Spacer()
                     if let last = viewModel.weightHistory.last {
                         Text(String(format: "%.1f kg", last.weightKg))
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(theme.accent)
                     }
                 }
             }
@@ -73,30 +74,30 @@ struct WeightProgressView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(t("progress.log"))
                 .font(.subheadline)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
 
             DatePicker(t("progress.date"), selection: $date, in: ...Date.now, displayedComponents: .date)
-                .tint(Theme.accent)
-                .foregroundStyle(Theme.text)
+                .tint(theme.accent)
+                .foregroundStyle(theme.text)
 
             HStack {
                 Text(t("onboarding.weight"))
-                    .foregroundStyle(Theme.text)
+                    .foregroundStyle(theme.text)
                 Spacer()
                 TextField("kg", text: $weightText)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(theme.accent)
                     .frame(width: 90)
             }
             .padding(14)
-            .background(Theme.panel2)
+            .background(theme.panel2)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             if showError {
                 Text(t("onboarding.error.range"))
                     .font(.footnote)
-                    .foregroundStyle(Theme.danger)
+                    .foregroundStyle(theme.danger)
             }
 
             Button {
@@ -107,7 +108,7 @@ struct WeightProgressView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .foregroundStyle(Color.black)
-                    .background(Theme.accentGradient)
+                    .background(theme.accentGradient)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(.plain)
@@ -120,30 +121,30 @@ struct WeightProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(t("progress.history"))
                 .font(.subheadline)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
 
             if viewModel.weightHistory.isEmpty {
                 Text(t("progress.history.empty"))
                     .font(.footnote)
-                    .foregroundStyle(Theme.textFaint)
+                    .foregroundStyle(theme.textFaint)
             } else {
                 let ordered = Array(viewModel.weightHistory.reversed())
                 VStack(spacing: 0) {
                     ForEach(Array(ordered.enumerated()), id: \.element.persistentModelID) { index, entry in
                         HStack {
                             Text(entry.date.formatted(date: .abbreviated, time: .omitted))
-                                .foregroundStyle(Theme.textDim)
+                                .foregroundStyle(theme.textDim)
                             Spacer()
                             Text(String(format: "%.1f kg", entry.weightKg))
-                                .foregroundStyle(Theme.text)
+                                .foregroundStyle(theme.text)
                                 .fontWeight(.semibold)
                             Button {
-                                withAnimation(Theme.springAnimation) {
+                                withAnimation(theme.springAnimation) {
                                     viewModel.deleteWeightEntry(entry)
                                 }
                             } label: {
                                 Image(systemName: "trash")
-                                    .foregroundStyle(Theme.danger)
+                                    .foregroundStyle(theme.danger)
                             }
                             .buttonStyle(.plain)
                             .padding(.leading, 12)
@@ -151,7 +152,7 @@ struct WeightProgressView: View {
                         }
                         .padding(.vertical, 10)
                         if index != ordered.count - 1 {
-                            Divider().overlay(Theme.textFaint.opacity(0.2))
+                            Divider().overlay(theme.textFaint.opacity(0.2))
                         }
                     }
                 }
@@ -164,11 +165,11 @@ struct WeightProgressView: View {
     private func logWeight() {
         guard let weight = Double(weightText.replacingOccurrences(of: ",", with: ".")),
               (30...250).contains(weight) else {
-            withAnimation(Theme.springAnimation) { showError = true }
+            withAnimation(theme.springAnimation) { showError = true }
             return
         }
         showError = false
-        withAnimation(Theme.springAnimation) {
+        withAnimation(theme.springAnimation) {
             viewModel.logWeight(weight, on: date)
         }
         dismiss()
@@ -179,6 +180,7 @@ struct WeightProgressView: View {
 /// exercise-demo drawing style rather than pulling in a charting library.
 private struct WeightSparkline: View {
     let entries: [WeightEntry]
+    let theme = Theme.shared
 
     var body: some View {
         Canvas { context, size in
@@ -204,16 +206,16 @@ private struct WeightSparkline: View {
             fill.addLine(to: CGPoint(x: 0, y: size.height))
             fill.closeSubpath()
             context.fill(fill, with: .linearGradient(
-                Gradient(colors: [Theme.accent.opacity(0.25), Theme.accent.opacity(0.0)]),
+                Gradient(colors: [theme.accent.opacity(0.25), theme.accent.opacity(0.0)]),
                 startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)
             ))
 
-            context.stroke(line, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+            context.stroke(line, with: .color(theme.accent), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
 
             for i in entries.indices {
                 let p = point(i)
                 let dot = Path(ellipseIn: CGRect(x: p.x - 3, y: p.y - 3, width: 6, height: 6))
-                context.fill(dot, with: .color(i == entries.count - 1 ? Theme.accentLight : Theme.accent))
+                context.fill(dot, with: .color(i == entries.count - 1 ? theme.accentLight : theme.accent))
             }
         }
     }

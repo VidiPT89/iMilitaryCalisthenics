@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     var viewModel: PlanViewModel
+    @State private var theme = Theme.shared
     @State private var lang = LocalizationManager.shared
     @State private var reminders = ReminderManager.shared
     @State private var showProgress = false
@@ -11,9 +12,10 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Text(t("settings.title"))
                     .font(.largeTitle.bold())
-                    .foregroundStyle(Theme.text)
+                    .foregroundStyle(theme.text)
                     .padding(.top, 24)
 
+                appearanceCard
                 languageCard
                 progressButton
                 remindersCard
@@ -23,7 +25,7 @@ struct SettingsView: View {
             }
             .padding(20)
         }
-        .background(Theme.background)
+        .background(theme.background)
         .sheet(isPresented: $showProgress) {
             WeightProgressView(viewModel: viewModel)
         }
@@ -38,35 +40,65 @@ struct SettingsView: View {
                 Text(t("settings.progress"))
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(Theme.textFaint)
+                    .foregroundStyle(theme.textFaint)
             }
-            .foregroundStyle(Theme.text)
+            .foregroundStyle(theme.text)
             .padding(16)
             .panelBackground()
         }
         .buttonStyle(.plain)
     }
 
+    private var appearanceCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(t("settings.appearance"))
+                .font(.subheadline)
+                .foregroundStyle(theme.textDim)
+
+            HStack(spacing: 10) {
+                ForEach(ThemeMode.allCases, id: \.self) { mode in
+                    let isSelected = theme.mode == mode
+                    Button {
+                        withAnimation(theme.springAnimation) { theme.mode = mode }
+                    } label: {
+                        Text(t("settings.appearance.\(mode.rawValue)"))
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .foregroundStyle(isSelected ? Color.black : theme.textDim)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(isSelected ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel2))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(16)
+        .panelBackground()
+    }
+
     private var languageCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(t("settings.language"))
                 .font(.subheadline)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
 
             HStack(spacing: 10) {
                 ForEach(Lang.allCases, id: \.self) { option in
                     let isSelected = lang.current == option
                     Button {
-                        withAnimation(Theme.springAnimation) { lang.current = option }
+                        withAnimation(theme.springAnimation) { lang.current = option }
                     } label: {
                         Text(option == .pt ? "PT-PT" : "EN")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .foregroundStyle(isSelected ? Color.black : Theme.textDim)
+                            .foregroundStyle(isSelected ? Color.black : theme.textDim)
                             .background(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(isSelected ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.panel2))
+                                    .fill(isSelected ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel2))
                             )
                     }
                     .buttonStyle(.plain)
@@ -82,7 +114,7 @@ struct SettingsView: View {
             HStack {
                 Text(t("reminders.title"))
                     .font(.subheadline)
-                    .foregroundStyle(Theme.textDim)
+                    .foregroundStyle(theme.textDim)
                 Spacer()
                 Toggle("", isOn: Binding(
                     get: { reminders.isEnabled },
@@ -100,14 +132,14 @@ struct SettingsView: View {
                         }
                     }
                 ))
-                .tint(Theme.accent)
+                .tint(theme.accent)
                 .labelsHidden()
             }
 
             if reminders.permissionDenied && !reminders.isEnabled {
                 Text(t("reminders.denied"))
                     .font(.caption)
-                    .foregroundStyle(Theme.danger)
+                    .foregroundStyle(theme.danger)
             }
 
             if reminders.isEnabled {
@@ -128,9 +160,9 @@ struct SettingsView: View {
                     ),
                     displayedComponents: .hourAndMinute
                 )
-                .foregroundStyle(Theme.text)
+                .foregroundStyle(theme.text)
                 .datePickerStyle(.compact)
-                .tint(Theme.accent)
+                .tint(theme.accent)
             }
         }
         .padding(16)
@@ -139,14 +171,14 @@ struct SettingsView: View {
 
     private var regeneratePlanButton: some View {
         Button {
-            withAnimation(Theme.springAnimation) { viewModel.regeneratePlan() }
+            withAnimation(theme.springAnimation) { viewModel.regeneratePlan() }
         } label: {
             HStack {
                 Image(systemName: "arrow.triangle.2.circlepath")
                 Text(t("settings.regeneratePlan"))
                 Spacer()
             }
-            .foregroundStyle(Theme.text)
+            .foregroundStyle(theme.text)
             .padding(16)
             .panelBackground()
         }
@@ -156,16 +188,16 @@ struct SettingsView: View {
 
     private var editProfileButton: some View {
         Button {
-            withAnimation(Theme.springAnimation) { viewModel.profile = nil }
+            withAnimation(theme.springAnimation) { viewModel.profile = nil }
         } label: {
             HStack {
                 Image(systemName: "person.crop.circle.badge.exclamationmark")
                 Text(t("plan.regenerate"))
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(Theme.textFaint)
+                    .foregroundStyle(theme.textFaint)
             }
-            .foregroundStyle(Theme.text)
+            .foregroundStyle(theme.text)
             .padding(16)
             .panelBackground()
         }
@@ -176,21 +208,21 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(t("settings.about"))
                 .font(.subheadline)
-                .foregroundStyle(Theme.textDim)
+                .foregroundStyle(theme.textDim)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(t("about.developedBy"))
                     .font(.headline)
-                    .foregroundStyle(Theme.text)
+                    .foregroundStyle(theme.text)
 
                 Link(destination: URL(string: "https://ividi.dev/")!) {
                     Label("ividi.dev", systemImage: "globe")
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(theme.accent)
                 }
 
                 Link(destination: URL(string: "https://github.com/VidiPT89/")!) {
                     Label("github.com/VidiPT89", systemImage: "chevron.left.slash.chevron.right")
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(theme.accent)
                 }
             }
         }
