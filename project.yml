@@ -16,7 +16,8 @@ targets:
     info:
       path: MilitaryCalisthenics/Info.plist
       properties:
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UISupportedInterfaceOrientations~ipad:
@@ -32,12 +33,29 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+  MilitaryCalisthenicsTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: MilitaryCalisthenicsTests
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: MilitaryCalisthenics
 schemes:
   MilitaryCalisthenics:
     build:
       targets:
         MilitaryCalisthenics: all
+        MilitaryCalisthenicsTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - MilitaryCalisthenicsTests
     archive:
       config: Release

@@ -18,6 +18,7 @@
 - ✅ Weight log with trend sparkline — logging a new weigh-in recalibrates the plan's intensity to match, no re-onboarding needed
 - ✅ In-app PT-PT / EN language switch, independent of the device locale
 - ✅ Fully offline, local persistence with SwiftData
+- ✅ Native app icon and dark, brand-matched launch screen — no white flash on cold start
 
 ## 🛠️ Tech Stack
 
@@ -60,6 +61,22 @@ multi-week plan split into daily workouts — browse weeks and days from the
 top selectors, tap an exercise to mark it done, and track completion with
 the animated progress ring. Switch language and edit your profile anytime
 from the Settings tab.
+
+## 🧪 Testing
+
+The `MilitaryCalisthenicsTests` target covers the `PlanEngine` core:
+deterministic generation across the full input matrix (edge ages and
+weights, every goal/level/equipment combination), correct week/day counts,
+higher volume for advanced levels, BMI-signal-driven intensity changes,
+age-band adjustment, goal-specific exercise counts, and plan recalibration
+after logging a new weigh-in. Run with:
+
+```bash
+xcodebuild -project MilitaryCalisthenics.xcodeproj \
+  -scheme MilitaryCalisthenics \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  test
+```
 
 ## 📄 License
 
