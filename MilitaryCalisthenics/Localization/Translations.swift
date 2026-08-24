@@ -3,7 +3,7 @@ import Foundation
 enum Translations {
     static let table: [String: [Lang: String]] = [
         // App
-        "app.name": [.pt: "Military Calisthenics", .en: "Military Calisthenics"],
+        "app.name": [.pt: "Calistenia Militar", .en: "Military Calisthenics"],
         "app.tagline": [.pt: "O teu plano de treino, à medida.", .en: "Your training plan, tailored to you."],
 
         // Onboarding
