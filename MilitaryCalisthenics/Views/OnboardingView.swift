@@ -139,6 +139,7 @@ struct OnboardingView: View {
         }
         .buttonStyle(PressableButtonStyle())
         .opacity(appear ? 1 : 0)
+        .accessibilityIdentifier("onboarding.generateButton")
     }
 
     private func generate() {

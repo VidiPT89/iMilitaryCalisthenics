@@ -47,5 +47,6 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(index == 0 ? "tab.plan" : "tab.settings")
     }
 }

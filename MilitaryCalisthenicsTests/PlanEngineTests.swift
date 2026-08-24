@@ -106,4 +106,29 @@ final class PlanEngineTests: XCTestCase {
 
         XCTAssertGreaterThan(strengthMassCount, fatLossCount)
     }
+
+    func testEveryCatalogExerciseHasPortugueseAndEnglishTranslations() {
+        let allExercises = ExerciseCatalog.warmup + ExerciseCatalog.strengthBodyweight
+            + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
+            + ExerciseCatalog.circuit + ExerciseCatalog.core + ExerciseCatalog.mobility
+            + ExerciseCatalog.cooldown
+
+        for exercise in allExercises {
+            let entry = Translations.table[exercise.name]
+            XCTAssertNotNil(entry?[.pt], "Missing PT translation for \(exercise.name)")
+            XCTAssertNotNil(entry?[.en], "Missing EN translation for \(exercise.name)")
+        }
+    }
+
+    func testEveryDayLabelHasPortugueseAndEnglishTranslations() {
+        let dayKeys = [
+            "day.upper", "day.lower", "day.fullBody", "day.fullBody1", "day.fullBody2",
+            "day.fullBody3", "day.push", "day.pull", "day.conditioning", "day.mobility",
+        ]
+        for key in dayKeys {
+            let entry = Translations.table[key]
+            XCTAssertNotNil(entry?[.pt], "Missing PT translation for \(key)")
+            XCTAssertNotNil(entry?[.en], "Missing EN translation for \(key)")
+        }
+    }
 }

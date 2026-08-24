@@ -211,6 +211,7 @@ private struct ExerciseRow: View {
                 ExerciseDemoThumbnail(motion: ExerciseMotion.kind(for: exercise.name))
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("exercise.demoThumbnail.\(exercise.name)")
 
             Button(action: toggle) {
                 HStack {
@@ -231,6 +232,7 @@ private struct ExerciseRow: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("exercise.toggle.\(exercise.name)")
         }
         .sheet(isPresented: $showingDemo) {
             ExerciseDemoSheet(
