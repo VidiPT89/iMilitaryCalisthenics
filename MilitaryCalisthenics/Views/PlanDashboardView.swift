@@ -3,6 +3,7 @@ import SwiftUI
 struct PlanDashboardView: View {
     var viewModel: PlanViewModel
     let theme = Theme.shared
+    @State private var showingPlanComplete = false
 
     var body: some View {
         ScrollView {
@@ -34,6 +35,16 @@ struct PlanDashboardView: View {
         }
         .background(theme.background)
         .animation(theme.springAnimation, value: viewModel.selectedDayIndex)
+        .onChange(of: viewModel.isPlanComplete) { _, isComplete in
+            if isComplete { showingPlanComplete = true }
+        }
+        .onAppear {
+            if viewModel.isPlanComplete { showingPlanComplete = true }
+        }
+        .sheet(isPresented: $showingPlanComplete) {
+            PlanCompleteSheet(viewModel: viewModel, isPresented: $showingPlanComplete)
+                .presentationDetents([.medium])
+        }
     }
 
     private var header: some View {
@@ -262,5 +273,99 @@ private struct ExerciseRow: View {
             quantity = ""
         }
         return "\(quantity) · \(exercise.restSeconds)s \(t("exercise.rest"))"
+    }
+}
+
+/// Presented when the user finishes the final week of their plan. Offers
+/// the two paths the plan engine already supports without re-onboarding:
+/// repeating the same level (`regeneratePlan`) or moving to the next one
+/// (`levelUp`). See docs/plan-engine-spec.md "Plan completion".
+private struct PlanCompleteSheet: View {
+    var viewModel: PlanViewModel
+    @Binding var isPresented: Bool
+    let theme = Theme.shared
+
+    var body: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Image(systemName: "flag.checkered.circle.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(theme.accentGradient)
+                Text(t("planComplete.title"))
+                    .font(.title2.bold())
+                    .foregroundStyle(theme.text)
+                Text(t("planComplete.subtitle"))
+                    .font(.subheadline)
+                    .foregroundStyle(theme.textDim)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 8)
+
+            VStack(spacing: 12) {
+                if let nextLevel = viewModel.nextLevel {
+                    Button {
+                        viewModel.levelUp()
+                        isPresented = false
+                    } label: {
+                        optionRow(
+                            icon: "arrow.up.circle.fill",
+                            title: "\(t("planComplete.levelUp")) \(t("onboarding.level.\(nextLevel.rawValue)"))",
+                            subtitle: t("planComplete.levelUp.subtitle"),
+                            emphasized: true
+                        )
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text(t("planComplete.maxLevel"))
+                        .font(.caption)
+                        .foregroundStyle(theme.textDim)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
+                }
+
+                Button {
+                    viewModel.regeneratePlan()
+                    isPresented = false
+                } label: {
+                    optionRow(
+                        icon: "arrow.counterclockwise.circle.fill",
+                        title: t("planComplete.repeat"),
+                        subtitle: t("planComplete.repeat.subtitle"),
+                        emphasized: viewModel.nextLevel == nil
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            Button(t("planComplete.dismiss")) {
+                isPresented = false
+            }
+            .font(.footnote)
+            .foregroundStyle(theme.textFaint)
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .background(theme.background)
+        .interactiveDismissDisabled(false)
+    }
+
+    private func optionRow(icon: String, title: String, subtitle: String, emphasized: Bool) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 26))
+                .foregroundStyle(emphasized ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.textDim))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(theme.text)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(theme.textDim)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .panelBackground()
     }
 }

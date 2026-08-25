@@ -39,6 +39,16 @@ enum Translations {
         "settings.regeneratePlan": [.pt: "Recomeçar plano atual", .en: "Restart current plan"],
         "plan.empty": [.pt: "Ainda não tens um plano. Cria o teu perfil para começar.", .en: "You don't have a plan yet. Set up your profile to get started."],
 
+        // Plan completion
+        "planComplete.title": [.pt: "Plano concluído!", .en: "Plan complete!"],
+        "planComplete.subtitle": [.pt: "Terminaste todas as semanas do teu plano atual. O que queres fazer a seguir?", .en: "You've finished every week of your current plan. What do you want to do next?"],
+        "planComplete.repeat": [.pt: "Repetir este nível", .en: "Repeat this level"],
+        "planComplete.repeat.subtitle": [.pt: "Recomeça o mesmo plano do zero", .en: "Restart the same plan from scratch"],
+        "planComplete.levelUp": [.pt: "Subir para", .en: "Level up to"],
+        "planComplete.levelUp.subtitle": [.pt: "Novo plano, mais exigente", .en: "New plan, more demanding"],
+        "planComplete.maxLevel": [.pt: "Já estás no nível máximo. Podes repetir o plano para continuar a treinar.", .en: "You're already at the top level. You can repeat the plan to keep training."],
+        "planComplete.dismiss": [.pt: "Continuar a ver o plano", .en: "Keep viewing the plan"],
+
         "block.warmup": [.pt: "Aquecimento", .en: "Warm-up"],
         "block.strength": [.pt: "Força", .en: "Strength"],
         "block.circuit": [.pt: "Circuito", .en: "Circuit"],

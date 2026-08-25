@@ -22,6 +22,16 @@ enum FitnessLevel: String, Codable, CaseIterable, Identifiable {
         case .advanced: return 1.15
         }
     }
+
+    /// The level reached after completing this one's full cycle, or `nil`
+    /// once already at `advanced` (nothing further to level up to).
+    var next: FitnessLevel? {
+        switch self {
+        case .beginner: return .intermediate
+        case .intermediate: return .advanced
+        case .advanced: return nil
+        }
+    }
 }
 
 enum Goal: String, Codable, CaseIterable, Identifiable {

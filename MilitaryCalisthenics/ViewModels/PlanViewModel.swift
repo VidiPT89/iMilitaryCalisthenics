@@ -86,6 +86,39 @@ final class PlanViewModel {
         plan = PlanEngine.generate(for: profile)
     }
 
+    /// Whether the user has finished every exercise of the plan's final
+    /// week — the trigger for the plan-completion prompt. Only the last
+    /// week counts (not the whole plan), so an in-progress restart of an
+    /// earlier week doesn't re-trigger it.
+    var isPlanComplete: Bool {
+        guard let plan, let lastWeek = plan.weeks.last else { return false }
+        let allExerciseKeys = lastWeek.days.flatMap { day in
+            day.blocks.flatMap { $0.exercises }.map { exerciseKey(weekIndex: lastWeek.index, day: day, exercise: $0) }
+        }
+        guard !allExerciseKeys.isEmpty else { return false }
+        return allExerciseKeys.allSatisfy { completedExerciseIDs.contains($0) }
+    }
+
+    /// The level the user would move to via `levelUp()`, or `nil` if
+    /// already at the highest level (`advanced`).
+    var nextLevel: FitnessLevel? { profile?.level.next }
+
+    /// Moves the profile to the next `FitnessLevel` and regenerates the
+    /// plan for it, without sending the user back through onboarding.
+    /// No-op if already at the highest level.
+    func levelUp() {
+        guard var profile, let next = profile.level.next else { return }
+        profile.level = next
+        self.profile = profile
+        storedProfile?.update(from: profile)
+        completedExerciseIDs = []
+        storedProfile?.completedExerciseIDs = []
+        selectedWeekIndex = 0
+        selectedDayIndex = 0
+        try? context?.save()
+        plan = PlanEngine.generate(for: profile)
+    }
+
     func save(profile: UserProfile) {
         guard let context else { return }
         self.profile = profile
@@ -132,6 +165,10 @@ final class PlanViewModel {
     }
 
     func exerciseKey(day: DailyWorkout, exercise: PlannedExercise) -> String {
-        "\(selectedWeekIndex)-\(day.dayLabel)-\(exercise.name)"
+        exerciseKey(weekIndex: selectedWeekIndex, day: day, exercise: exercise)
+    }
+
+    func exerciseKey(weekIndex: Int, day: DailyWorkout, exercise: PlannedExercise) -> String {
+        "\(weekIndex)-\(day.dayLabel)-\(exercise.name)"
     }
 }
