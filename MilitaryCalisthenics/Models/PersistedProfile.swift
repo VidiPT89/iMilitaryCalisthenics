@@ -12,6 +12,7 @@ final class PersistedProfile {
     var daysPerWeek: Int
     var equipmentRaw: String
     var completedExerciseIDs: [String]
+    var planCompletionAcknowledged: Bool = false
 
     init(profile: UserProfile) {
         self.weightKg = profile.weightKg
@@ -23,6 +24,7 @@ final class PersistedProfile {
         self.daysPerWeek = profile.daysPerWeek
         self.equipmentRaw = profile.equipment.rawValue
         self.completedExerciseIDs = []
+        self.planCompletionAcknowledged = false
     }
 
     var profile: UserProfile {
@@ -48,5 +50,6 @@ final class PersistedProfile {
         daysPerWeek = profile.daysPerWeek
         equipmentRaw = profile.equipment.rawValue
         completedExerciseIDs = []
+        planCompletionAcknowledged = false
     }
 }

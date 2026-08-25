@@ -10,6 +10,7 @@ final class PlanViewModel {
     var selectedDayIndex: Int = 0
     var completedExerciseIDs: Set<String> = []
     var weightHistory: [WeightEntry] = []
+    var planCompletionAcknowledged: Bool = false
 
     private var context: ModelContext?
     private var storedProfile: PersistedProfile?
@@ -21,6 +22,7 @@ final class PlanViewModel {
             storedProfile = existing
             profile = existing.profile
             completedExerciseIDs = Set(existing.completedExerciseIDs)
+            planCompletionAcknowledged = existing.planCompletionAcknowledged
             plan = PlanEngine.generate(for: existing.profile)
         }
         reloadWeightHistory()
@@ -45,6 +47,7 @@ final class PlanViewModel {
         self.profile = profile
         storedProfile?.update(from: profile)
         completedExerciseIDs = []
+        planCompletionAcknowledged = false
         selectedWeekIndex = 0
         selectedDayIndex = 0
         try? context.save()
@@ -80,6 +83,8 @@ final class PlanViewModel {
         guard let profile else { return }
         completedExerciseIDs = []
         storedProfile?.completedExerciseIDs = []
+        planCompletionAcknowledged = false
+        storedProfile?.planCompletionAcknowledged = false
         selectedWeekIndex = 0
         selectedDayIndex = 0
         try? context?.save()
@@ -99,6 +104,20 @@ final class PlanViewModel {
         return allExerciseKeys.allSatisfy { completedExerciseIDs.contains($0) }
     }
 
+    /// Whether the plan-completion prompt should be shown: the plan is
+    /// complete and the user hasn't already dismissed the prompt for it.
+    /// Unlike `isPlanComplete`, this stays false across tab switches/app
+    /// relaunches once acknowledged, so it doesn't nag on every visit.
+    var shouldShowPlanComplete: Bool { isPlanComplete && !planCompletionAcknowledged }
+
+    /// Records that the user has seen the plan-completion prompt for the
+    /// current plan, so it won't reappear until the plan changes again.
+    func acknowledgePlanComplete() {
+        planCompletionAcknowledged = true
+        storedProfile?.planCompletionAcknowledged = true
+        try? context?.save()
+    }
+
     /// The level the user would move to via `levelUp()`, or `nil` if
     /// already at the highest level (`advanced`).
     var nextLevel: FitnessLevel? { profile?.level.next }
@@ -113,6 +132,8 @@ final class PlanViewModel {
         storedProfile?.update(from: profile)
         completedExerciseIDs = []
         storedProfile?.completedExerciseIDs = []
+        planCompletionAcknowledged = false
+        storedProfile?.planCompletionAcknowledged = false
         selectedWeekIndex = 0
         selectedDayIndex = 0
         try? context?.save()
@@ -125,6 +146,7 @@ final class PlanViewModel {
         selectedWeekIndex = 0
         selectedDayIndex = 0
         completedExerciseIDs = []
+        planCompletionAcknowledged = false
         if let storedProfile {
             storedProfile.update(from: profile)
         } else {

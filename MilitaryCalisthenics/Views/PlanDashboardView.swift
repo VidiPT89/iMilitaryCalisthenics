@@ -35,13 +35,22 @@ struct PlanDashboardView: View {
         }
         .background(theme.background)
         .animation(theme.springAnimation, value: viewModel.selectedDayIndex)
-        .onChange(of: viewModel.isPlanComplete) { _, isComplete in
-            if isComplete { showingPlanComplete = true }
+        .onChange(of: viewModel.shouldShowPlanComplete) { _, shouldShow in
+            if shouldShow { showingPlanComplete = true }
         }
         .onAppear {
-            if viewModel.isPlanComplete { showingPlanComplete = true }
+            if viewModel.shouldShowPlanComplete { showingPlanComplete = true }
         }
-        .sheet(isPresented: $showingPlanComplete) {
+        .sheet(isPresented: $showingPlanComplete, onDismiss: {
+            // Only acknowledge if the plan is still the completed one that
+            // triggered the sheet (e.g. dismissed via swipe or the "keep
+            // viewing" button). If the user chose repeat/level up instead,
+            // `viewModel.plan` is already a fresh one and isn't complete,
+            // so this must not mark it as acknowledged too.
+            if viewModel.isPlanComplete {
+                viewModel.acknowledgePlanComplete()
+            }
+        }) {
             PlanCompleteSheet(viewModel: viewModel, isPresented: $showingPlanComplete)
                 .presentationDetents([.medium])
         }
