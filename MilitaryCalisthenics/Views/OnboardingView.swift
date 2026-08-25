@@ -4,9 +4,9 @@ struct OnboardingView: View {
     var viewModel: PlanViewModel
     let theme = Theme.shared
 
-    @State private var weightText = "75"
-    @State private var heightText = "175"
-    @State private var ageText = "28"
+    @State private var weight: Double = 75
+    @State private var height: Double = 175
+    @State private var age: Double = 28
     @State private var sex: Sex = .unspecified
     @State private var level: FitnessLevel = .beginner
     @State private var goal: Goal = .fatLoss
@@ -52,29 +52,26 @@ struct OnboardingView: View {
 
     private var measurementsSection: some View {
         VStack(spacing: 14) {
-            fieldRow(title: t("onboarding.weight"), text: $weightText, suffix: "kg")
-            fieldRow(title: t("onboarding.height"), text: $heightText, suffix: "cm")
-            fieldRow(title: t("onboarding.age"), text: $ageText, suffix: "")
+            sliderRow(title: t("onboarding.weight"), value: $weight, range: 30...250, step: 1, suffix: "kg")
+            sliderRow(title: t("onboarding.height"), value: $height, range: 120...230, step: 1, suffix: "cm")
+            sliderRow(title: t("onboarding.age"), value: $age, range: 14...75, step: 1, suffix: "")
         }
         .opacity(appear ? 1 : 0)
         .offset(y: appear ? 0 : 12)
     }
 
-    private func fieldRow(title: String, text: Binding<String>, suffix: String) -> some View {
-        HStack {
-            Text(title)
-                .foregroundStyle(theme.textDim)
-            Spacer()
-            TextField("", text: text)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .foregroundStyle(theme.text)
-                .frame(width: 80)
-            if !suffix.isEmpty {
-                Text(suffix)
-                    .foregroundStyle(theme.textFaint)
-                    .font(.caption)
+    private func sliderRow(title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, suffix: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title)
+                    .foregroundStyle(theme.textDim)
+                Spacer()
+                Text(suffix.isEmpty ? "\(Int(value.wrappedValue))" : "\(Int(value.wrappedValue)) \(suffix)")
+                    .foregroundStyle(theme.text)
+                    .font(.headline)
             }
+            Slider(value: value, in: range, step: step)
+                .tint(theme.accent)
         }
         .padding(16)
         .panelBackground()
@@ -144,17 +141,8 @@ struct OnboardingView: View {
     }
 
     private func generate() {
-        guard
-            let weight = Double(weightText.replacingOccurrences(of: ",", with: ".")),
-            let height = Double(heightText.replacingOccurrences(of: ",", with: ".")),
-            let age = Int(ageText)
-        else {
-            withAnimation { showError = true }
-            return
-        }
-
         let profile = UserProfile(
-            weightKg: weight, heightCm: height, age: age, sex: sex,
+            weightKg: weight, heightCm: height, age: Int(age), sex: sex,
             level: level, goal: goal, daysPerWeek: daysPerWeek, equipment: equipment
         )
 

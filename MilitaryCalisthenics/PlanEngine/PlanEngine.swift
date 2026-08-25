@@ -29,7 +29,17 @@ enum PlanEngine {
         if bmi > 27 { factor -= 0.1 }
         else if bmi < 18.5 { factor += 0.1 }
         if profile.ageBand == .over40 { factor *= 0.9 }
+        factor *= sexMultiplier(for: profile.sex)
         return factor
+    }
+
+    /// Average upper-body strength/endurance calibration by sex, per docs/plan-engine-spec.md.
+    private static func sexMultiplier(for sex: Sex) -> Double {
+        switch sex {
+        case .male: return 1.0
+        case .female: return 0.9
+        case .unspecified: return 1.0
+        }
     }
 
     private static func splitLabels(for daysPerWeek: Int) -> [String] {

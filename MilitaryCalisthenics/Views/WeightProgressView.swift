@@ -8,9 +8,8 @@ struct WeightProgressView: View {
     let theme = Theme.shared
     @Environment(\.dismiss) private var dismiss
 
-    @State private var weightText: String = ""
+    @State private var weight: Double = 75
     @State private var date: Date = .now
-    @State private var showError = false
 
     var body: some View {
         NavigationStack {
@@ -32,7 +31,7 @@ struct WeightProgressView: View {
             }
         }
         .onAppear {
-            weightText = viewModel.profile.map { String(format: "%.1f", $0.weightKg) } ?? ""
+            weight = viewModel.profile?.weightKg ?? 75
         }
     }
 
@@ -80,25 +79,21 @@ struct WeightProgressView: View {
                 .tint(theme.accent)
                 .foregroundStyle(theme.text)
 
-            HStack {
-                Text(t("onboarding.weight"))
-                    .foregroundStyle(theme.text)
-                Spacer()
-                TextField("kg", text: $weightText)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(theme.accent)
-                    .frame(width: 90)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(t("onboarding.weight"))
+                        .foregroundStyle(theme.text)
+                    Spacer()
+                    Text("\(String(format: "%.1f", weight)) kg")
+                        .font(.headline)
+                        .foregroundStyle(theme.accent)
+                }
+                Slider(value: $weight, in: 30...250, step: 0.5)
+                    .tint(theme.accent)
             }
             .padding(14)
             .background(theme.panel2)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-            if showError {
-                Text(t("onboarding.error.range"))
-                    .font(.footnote)
-                    .foregroundStyle(theme.danger)
-            }
 
             Button {
                 logWeight()
@@ -163,12 +158,6 @@ struct WeightProgressView: View {
     }
 
     private func logWeight() {
-        guard let weight = Double(weightText.replacingOccurrences(of: ",", with: ".")),
-              (30...250).contains(weight) else {
-            withAnimation(theme.springAnimation) { showError = true }
-            return
-        }
-        showError = false
         withAnimation(theme.springAnimation) {
             viewModel.logWeight(weight, on: date)
         }
