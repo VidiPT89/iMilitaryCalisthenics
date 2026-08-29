@@ -86,11 +86,14 @@ enum ExerciseCatalog {
         CatalogExercise(name: "exercise.bearCrawl", block: .circuit, baseSeconds: 30),
     ]
 
+    // Deliberately does not reuse exercise.pikePushUps/exercise.diamondPushUps
+    // (they're already in strengthBodyweight, allowed on any day's strength
+    // block by default) — sharing a name between the strength and circuit
+    // pools let the same exercise appear twice in one day's workout.
     static let circuitStrengthMass: [CatalogExercise] = [
         CatalogExercise(name: "exercise.mountainClimbers", block: .circuit, baseSeconds: 30),
-        CatalogExercise(name: "exercise.pikePushUps", block: .circuit, baseReps: 8, minLevel: .intermediate),
         CatalogExercise(name: "exercise.explosivePushUps", block: .circuit, baseReps: 6, minLevel: .intermediate),
-        CatalogExercise(name: "exercise.diamondPushUps", block: .circuit, baseReps: 8, minLevel: .intermediate),
+        CatalogExercise(name: "exercise.jumpSquats", block: .circuit, baseReps: 14, skipOverForty: true),
     ]
 
     static func circuitPool(for goal: Goal) -> [CatalogExercise] {

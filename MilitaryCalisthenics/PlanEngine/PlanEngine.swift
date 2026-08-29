@@ -57,7 +57,14 @@ enum PlanEngine {
         let hasCircuit = includeCircuit(for: profile.goal, label: label)
         let budget = SessionBudget(sessionMinutes: profile.sessionMinutes, hasCircuit: hasCircuit)
 
+        // Only pattern-tagged (push/pull/legs) entries belong in the strength
+        // block. `availableStrength` also carries bonus core exercises that
+        // unlock with equipment (hangingLegRaises, lSit) — those are `.core`
+        // and have no pattern, so without this filter they'd bypass the
+        // day-label filtering below entirely and could show up alone on a
+        // "Lower Body" day with zero actual leg work.
         let fullStrengthPool = ExerciseCatalog.availableStrength(for: profile.equipment)
+            .filter { $0.pattern != nil }
             .filter { levelAllows($0.minLevel, profile.level) }
         let dayPatterns = patterns(forLabel: label)
         let strengthPool = filteredPool(fullStrengthPool, allowing: dayPatterns)
@@ -82,7 +89,21 @@ enum PlanEngine {
             blocks.append(block(.circuit, from: circuitExercises, count: circuitExercises.count, profile: profile, intensity: intensity, scale: scale, rest: circuitRest))
         }
 
-        let corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
+        var corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
+        if profile.goal != .mobility {
+            // Bonus core exercises that unlock with equipment (hanging leg
+            // raises need a bar, L-sit needs parallettes) — moved here from
+            // the strength pool, since they train core, not a strength
+            // pattern (see fullStrengthPool above).
+            if profile.equipment == .pullUpBar || profile.equipment == .parallettes {
+                corePool += ExerciseCatalog.strengthPullBar
+                    .filter { $0.block == .core && levelAllows($0.minLevel, profile.level) }
+            }
+            if profile.equipment == .parallettes {
+                corePool += ExerciseCatalog.strengthParallettes
+                    .filter { $0.block == .core && levelAllows($0.minLevel, profile.level) }
+            }
+        }
         let coreCount = exerciseCount(pool: corePool, budgetSeconds: budget.coreSeconds, sets: 3, restSeconds: 20, intensity: intensity, scale: scale)
         let coreExercises = pick(from: corePool, splitIndex: splitIndex, weekIndex: weekIndex, count: coreCount)
         blocks.append(block(.core, from: coreExercises, count: coreExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 20))

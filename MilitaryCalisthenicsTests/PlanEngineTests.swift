@@ -175,6 +175,48 @@ final class PlanEngineTests: XCTestCase {
         }
     }
 
+    func testNoExerciseNameRepeatsTwiceWithinTheSameDayAcrossBlocks() {
+        for goal in Goal.allCases {
+            for equipment in Equipment.allCases {
+                for days in [3, 4, 5, 6] {
+                for sessionMinutes in [15, 30, 60] {
+                let profile = makeProfile(goal: goal, daysPerWeek: days, equipment: equipment, sessionMinutes: sessionMinutes)
+                let plan = PlanEngine.generate(for: profile)
+                for week in plan.weeks {
+                    for day in week.days {
+                        let allNames = day.blocks.flatMap { $0.exercises.map(\.name) }
+                        let counts = Dictionary(grouping: allNames, by: { $0 }).mapValues(\.count)
+                        let duplicates = counts.filter { $0.value > 1 }
+                        XCTAssertTrue(duplicates.isEmpty, "\(goal)/\(equipment) day \(day.dayLabel) has duplicate exercises: \(duplicates)")
+                    }
+                }
+                }
+                }
+            }
+        }
+    }
+
+    func testLowerBodyDayOnlyContainsLegExercisesWithPullUpBar() {
+        // Regression test: hangingLegRaises/lSit are tagged `.core` with no
+        // movement pattern, so they used to bypass day-label filtering
+        // entirely (a `nil` pattern always passed) and could show up alone
+        // on a "Lower Body" day for pull-bar/parallettes users, with zero
+        // actual leg work that day.
+        let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
+        for equipment: Equipment in [.pullUpBar, .parallettes] {
+            let profile = makeProfile(level: .advanced, daysPerWeek: 5, equipment: equipment)
+            let plan = PlanEngine.generate(for: profile)
+            for week in plan.weeks {
+                guard let lowerDay = week.days.first(where: { $0.dayLabel == "day.lower" }) else { continue }
+                let strengthNames = lowerDay.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name) ?? []
+                XCTAssertFalse(strengthNames.isEmpty)
+                for name in strengthNames {
+                    XCTAssertTrue(legNames.contains(name), "\(name) is not a leg exercise but appeared on day.lower with \(equipment)")
+                }
+            }
+        }
+    }
+
     func testLowerBodyDayOnlyContainsLegExercises() {
         // Regression test: "day.lower" ("Membros Inferiores") used to be a
         // cosmetic label only — the strength block ignored it and could
@@ -230,7 +272,7 @@ final class PlanEngineTests: XCTestCase {
         XCTAssertNotEqual(week1Names, week2Names, "strength selection should vary week to week, not repeat identically")
     }
 
-    func testBeginnerStrengthMassConditioningDayCircuitIsNeverEmpty() {
+func testBeginnerStrengthMassConditioningDayCircuitIsNeverEmpty() {
         // Regression test: the strengthMass conditioning circuit (pike/
         // explosive/diamond push-ups) is all intermediate+; a beginner
         // must still get a non-empty circuit block that day.
