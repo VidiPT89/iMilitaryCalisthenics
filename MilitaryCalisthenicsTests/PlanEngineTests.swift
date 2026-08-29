@@ -175,6 +175,61 @@ final class PlanEngineTests: XCTestCase {
         }
     }
 
+    func testLowerBodyDayOnlyContainsLegExercises() {
+        // Regression test: "day.lower" ("Membros Inferiores") used to be a
+        // cosmetic label only — the strength block ignored it and could
+        // include push-ups/pull exercises on a "lower body" day.
+        let profile = makeProfile(daysPerWeek: 4, equipment: .bodyweightOnly)
+        let plan = PlanEngine.generate(for: profile)
+        let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
+
+        for week in plan.weeks {
+            guard let lowerDay = week.days.first(where: { $0.dayLabel == "day.lower" }) else {
+                return XCTFail("expected a day.lower day in a 4-day split")
+            }
+            let strengthNames = lowerDay.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name) ?? []
+            XCTAssertFalse(strengthNames.isEmpty)
+            for name in strengthNames {
+                XCTAssertTrue(legNames.contains(name), "\(name) is not a leg exercise but appeared on day.lower")
+            }
+        }
+    }
+
+    func testUpperBodyDayNeverContainsLegExercises() {
+        let profile = makeProfile(daysPerWeek: 4, equipment: .bodyweightOnly)
+        let plan = PlanEngine.generate(for: profile)
+        let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
+
+        for week in plan.weeks {
+            guard let upperDay = week.days.first(where: { $0.dayLabel == "day.upper" }) else {
+                return XCTFail("expected a day.upper day in a 4-day split")
+            }
+            let strengthNames = upperDay.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name) ?? []
+            for name in strengthNames {
+                XCTAssertFalse(legNames.contains(name), "\(name) is a leg exercise but appeared on day.upper")
+            }
+        }
+    }
+
+    func testBodyweightOnlyEquipmentHasAPullExercise() {
+        // Regression test: bodyweight-only users used to have zero pull-pattern
+        // exercises available at all (pull-ups required a bar).
+        let pool = ExerciseCatalog.availableStrength(for: .bodyweightOnly)
+        XCTAssertTrue(pool.contains(where: { $0.pattern == .pull }), "bodyweight-only pool has no pull exercise")
+    }
+
+    func testStrengthSelectionVariesAcrossWeeksOfTheSamePlan() {
+        // Regression test: the weekly rotation used to be identical every
+        // week of a 4-8 week plan (only varied by day, not by week).
+        let profile = makeProfile(level: .advanced, daysPerWeek: 4, equipment: .bodyweightOnly)
+        let plan = PlanEngine.generate(for: profile)
+        guard plan.weeks.count >= 2 else { return XCTFail("expected multiple weeks") }
+
+        let week1Names = plan.weeks[0].days.first?.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name)
+        let week2Names = plan.weeks[1].days.first?.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name)
+        XCTAssertNotEqual(week1Names, week2Names, "strength selection should vary week to week, not repeat identically")
+    }
+
     func testEveryDayLabelHasPortugueseAndEnglishTranslations() {
         let dayKeys = [
             "day.upper", "day.lower", "day.fullBody", "day.fullBody1", "day.fullBody2",

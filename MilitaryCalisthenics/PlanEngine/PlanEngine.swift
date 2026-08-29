@@ -16,7 +16,7 @@ enum PlanEngine {
             let isDeload = (w + 1) % 4 == 0
             let scale = isDeload ? 0.6 : 1 + progressionStep * Double(w)
             let days = dayLabels.enumerated().map { index, label in
-                buildDay(label: label, splitIndex: index, profile: profile, intensity: intensity, scale: scale)
+                buildDay(label: label, splitIndex: index, weekIndex: w, profile: profile, intensity: intensity, scale: scale)
             }
             weeks.append(WeekPlan(index: w, isDeload: isDeload, days: days))
         }
@@ -51,17 +51,19 @@ enum PlanEngine {
         }
     }
 
-    private static func buildDay(label: String, splitIndex: Int, profile: UserProfile, intensity: Double, scale: Double) -> DailyWorkout {
+    private static func buildDay(label: String, splitIndex: Int, weekIndex: Int, profile: UserProfile, intensity: Double, scale: Double) -> DailyWorkout {
         let warmupBlock = block(.warmup, from: ExerciseCatalog.warmup, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 15)
 
         let hasCircuit = includeCircuit(for: profile.goal, label: label)
         let budget = SessionBudget(sessionMinutes: profile.sessionMinutes, hasCircuit: hasCircuit)
 
-        let strengthPool = ExerciseCatalog.availableStrength(for: profile.equipment)
+        let fullStrengthPool = ExerciseCatalog.availableStrength(for: profile.equipment)
             .filter { levelAllows($0.minLevel, profile.level) }
+        let dayPatterns = patterns(forLabel: label)
+        let strengthPool = filteredPool(fullStrengthPool, allowing: dayPatterns)
         let strengthRest = profile.goal == .strengthMass ? 75 : 45
         let strengthCount = exerciseCount(pool: strengthPool, budgetSeconds: budget.strengthSeconds, sets: 4, restSeconds: strengthRest, intensity: intensity, scale: scale)
-        let strengthExercises = pick(from: strengthPool, splitIndex: splitIndex, count: strengthCount)
+        let strengthExercises = pick(from: strengthPool, splitIndex: splitIndex, weekIndex: weekIndex, count: strengthCount)
         let strengthBlock = block(.strength, from: strengthExercises, count: strengthExercises.count, profile: profile, intensity: intensity, scale: scale, rest: strengthRest)
 
         var blocks = [warmupBlock, strengthBlock]
@@ -70,18 +72,44 @@ enum PlanEngine {
             let circuitPool = ExerciseCatalog.circuit.filter { !( $0.skipOverForty && profile.ageBand == .over40 ) }
             let circuitRest = profile.goal == .fatLoss ? 30 : 40
             let circuitCount = exerciseCount(pool: circuitPool, budgetSeconds: budget.circuitSeconds, sets: 3, restSeconds: circuitRest, intensity: intensity, scale: scale)
-            let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, count: circuitCount)
+            let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, weekIndex: weekIndex, count: circuitCount)
             blocks.append(block(.circuit, from: circuitExercises, count: circuitExercises.count, profile: profile, intensity: intensity, scale: scale, rest: circuitRest))
         }
 
         let corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
         let coreCount = exerciseCount(pool: corePool, budgetSeconds: budget.coreSeconds, sets: 3, restSeconds: 20, intensity: intensity, scale: scale)
-        let coreExercises = pick(from: corePool, splitIndex: splitIndex, count: coreCount)
+        let coreExercises = pick(from: corePool, splitIndex: splitIndex, weekIndex: weekIndex, count: coreCount)
         blocks.append(block(.core, from: coreExercises, count: coreExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 20))
 
         blocks.append(block(.cooldown, from: ExerciseCatalog.cooldown, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 10))
 
         return DailyWorkout(dayLabel: label, blocks: blocks)
+    }
+
+    /// Which movement patterns a day's strength block should draw from,
+    /// based on the day's own label (upper/lower/push/pull/full body).
+    /// This is what makes "Lower Body" actually mean lower body instead of
+    /// the label being purely cosmetic.
+    private static func patterns(forLabel label: String) -> Set<MovementPattern> {
+        switch label {
+        case "day.upper": return [.push, .pull]
+        case "day.lower": return [.legs]
+        case "day.push": return [.push]
+        case "day.pull": return [.pull]
+        default: return [.push, .pull, .legs]
+        }
+    }
+
+    /// Restricts `pool` to exercises whose pattern is allowed for the day
+    /// (non-strength exercises, with a `nil` pattern, always pass through).
+    /// Falls back to the unfiltered pool if filtering would leave it empty,
+    /// so a day never ends up with zero strength exercises.
+    private static func filteredPool(_ pool: [CatalogExercise], allowing patterns: Set<MovementPattern>) -> [CatalogExercise] {
+        let filtered = pool.filter { entry in
+            guard let pattern = entry.pattern else { return true }
+            return patterns.contains(pattern)
+        }
+        return filtered.isEmpty ? pool : filtered
     }
 
     /// Splits the time left after warm-up/cool-down across the variable
@@ -146,9 +174,13 @@ enum PlanEngine {
         }
     }
 
-    private static func pick(from pool: [CatalogExercise], splitIndex: Int, count: Int) -> [CatalogExercise] {
+    /// Rotates `pool` by both the day's position in the split and the week
+    /// index, so the exact same exercises don't repeat identically every
+    /// week of a 4-8 week plan.
+    private static func pick(from pool: [CatalogExercise], splitIndex: Int, weekIndex: Int, count: Int) -> [CatalogExercise] {
         guard !pool.isEmpty else { return [] }
-        let rotated = Array(pool[(splitIndex % pool.count)...] + pool[..<(splitIndex % pool.count)])
+        let offset = (splitIndex + weekIndex) % pool.count
+        let rotated = Array(pool[offset...] + pool[..<offset])
         return Array(rotated.prefix(count))
     }
 

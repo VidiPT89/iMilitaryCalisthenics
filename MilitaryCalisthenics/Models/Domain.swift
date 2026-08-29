@@ -92,6 +92,13 @@ enum BlockKind: String, Codable {
     case warmup, strength, circuit, core, cooldown
 }
 
+/// Movement pattern a strength exercise trains — used to make the plan
+/// engine's exercise selection respect the day's own label (e.g. a
+/// "Lower Body" day should not be filled with push-ups).
+enum MovementPattern: String, Codable {
+    case push, pull, legs
+}
+
 struct PlannedExercise: Codable, Identifiable, Equatable {
     var id: String { name }
     let name: String

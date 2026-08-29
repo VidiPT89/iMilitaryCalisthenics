@@ -8,9 +8,14 @@ struct CatalogExercise {
     let minLevel: FitnessLevel
     let skipOverForty: Bool
     let requires: Equipment?
+    /// Movement pattern for `.strength` exercises, used to filter selection
+    /// by the day's own focus (upper/lower/push/pull). `nil` for exercises
+    /// outside the strength block, where it doesn't apply.
+    let pattern: MovementPattern?
 
     init(name: String, block: BlockKind, baseReps: Int? = nil, baseSeconds: Int? = nil,
-         minLevel: FitnessLevel = .beginner, skipOverForty: Bool = false, requires: Equipment? = nil) {
+         minLevel: FitnessLevel = .beginner, skipOverForty: Bool = false, requires: Equipment? = nil,
+         pattern: MovementPattern? = nil) {
         self.name = name
         self.block = block
         self.baseReps = baseReps
@@ -18,6 +23,7 @@ struct CatalogExercise {
         self.minLevel = minLevel
         self.skipOverForty = skipOverForty
         self.requires = requires
+        self.pattern = pattern
     }
 }
 
@@ -31,24 +37,30 @@ enum ExerciseCatalog {
     ]
 
     static let strengthBodyweight: [CatalogExercise] = [
-        CatalogExercise(name: "exercise.pushUps", block: .strength, baseReps: 12),
-        CatalogExercise(name: "exercise.widePushUps", block: .strength, baseReps: 10),
-        CatalogExercise(name: "exercise.diamondPushUps", block: .strength, baseReps: 8, minLevel: .intermediate),
-        CatalogExercise(name: "exercise.pikePushUps", block: .strength, baseReps: 8, minLevel: .intermediate),
-        CatalogExercise(name: "exercise.squats", block: .strength, baseReps: 18),
-        CatalogExercise(name: "exercise.lunges", block: .strength, baseReps: 12),
-        CatalogExercise(name: "exercise.gluteBridges", block: .strength, baseReps: 15),
+        CatalogExercise(name: "exercise.pushUps", block: .strength, baseReps: 12, pattern: .push),
+        CatalogExercise(name: "exercise.widePushUps", block: .strength, baseReps: 10, pattern: .push),
+        CatalogExercise(name: "exercise.diamondPushUps", block: .strength, baseReps: 8, minLevel: .intermediate, pattern: .push),
+        CatalogExercise(name: "exercise.pikePushUps", block: .strength, baseReps: 8, minLevel: .intermediate, pattern: .push),
+        CatalogExercise(name: "exercise.squats", block: .strength, baseReps: 18, pattern: .legs),
+        CatalogExercise(name: "exercise.lunges", block: .strength, baseReps: 12, pattern: .legs),
+        CatalogExercise(name: "exercise.gluteBridges", block: .strength, baseReps: 15, pattern: .legs),
+    ]
+
+    /// Bodyweight-only pull option (no bar needed) — without it, users on
+    /// `.bodyweightOnly` equipment had zero pull-pattern exercises available.
+    static let strengthPullFallback: [CatalogExercise] = [
+        CatalogExercise(name: "exercise.invertedRows", block: .strength, baseReps: 10, pattern: .pull),
     ]
 
     static let strengthPullBar: [CatalogExercise] = [
-        CatalogExercise(name: "exercise.pullUps", block: .strength, baseReps: 6, minLevel: .intermediate, requires: .pullUpBar),
-        CatalogExercise(name: "exercise.chinUps", block: .strength, baseReps: 6, requires: .pullUpBar),
-        CatalogExercise(name: "exercise.negativePullUps", block: .strength, baseReps: 5, requires: .pullUpBar),
+        CatalogExercise(name: "exercise.pullUps", block: .strength, baseReps: 6, minLevel: .intermediate, requires: .pullUpBar, pattern: .pull),
+        CatalogExercise(name: "exercise.chinUps", block: .strength, baseReps: 6, requires: .pullUpBar, pattern: .pull),
+        CatalogExercise(name: "exercise.negativePullUps", block: .strength, baseReps: 5, requires: .pullUpBar, pattern: .pull),
         CatalogExercise(name: "exercise.hangingLegRaises", block: .core, baseReps: 10, minLevel: .intermediate, requires: .pullUpBar),
     ]
 
     static let strengthParallettes: [CatalogExercise] = [
-        CatalogExercise(name: "exercise.dips", block: .strength, baseReps: 10, requires: .parallettes),
+        CatalogExercise(name: "exercise.dips", block: .strength, baseReps: 10, requires: .parallettes, pattern: .push),
         CatalogExercise(name: "exercise.lSit", block: .core, baseSeconds: 15, minLevel: .advanced, requires: .parallettes),
     ]
 
@@ -83,7 +95,11 @@ enum ExerciseCatalog {
 
     static func availableStrength(for equipment: Equipment) -> [CatalogExercise] {
         var pool = strengthBodyweight
-        if equipment == .pullUpBar || equipment == .parallettes { pool += strengthPullBar }
+        if equipment == .pullUpBar || equipment == .parallettes {
+            pool += strengthPullBar
+        } else {
+            pool += strengthPullFallback
+        }
         if equipment == .parallettes { pool += strengthParallettes }
         return pool
     }

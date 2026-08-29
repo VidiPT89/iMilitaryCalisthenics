@@ -61,6 +61,8 @@ enum ExerciseMotion {
         "exercise.lunges": (.lunge, "cue.lunge"),
         "exercise.gluteBridges": (.bridge, "cue.bridge"),
 
+        "exercise.invertedRows": (.pullUp, "cue.invertedRows"),
+
         "exercise.pullUps": (.pullUp, "cue.pullUp"),
         "exercise.chinUps": (.pullUp, "cue.chinUp"),
         "exercise.negativePullUps": (.pullUp, "cue.negativePullUp"),
