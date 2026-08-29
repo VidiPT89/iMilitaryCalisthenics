@@ -78,6 +78,10 @@ enum ExerciseCatalog {
         CatalogExercise(name: "exercise.plank", block: .core, baseSeconds: 30),
         CatalogExercise(name: "exercise.sidePlank", block: .core, baseSeconds: 20),
         CatalogExercise(name: "exercise.mountainClimbersCore", block: .core, baseSeconds: 25),
+        CatalogExercise(name: "exercise.russianTwists", block: .core, baseReps: 20),
+        CatalogExercise(name: "exercise.legRaisesFloor", block: .core, baseReps: 12),
+        CatalogExercise(name: "exercise.bicycleCrunches", block: .core, baseReps: 20),
+        CatalogExercise(name: "exercise.supermanHold", block: .core, baseSeconds: 20),
     ]
 
     static let mobility: [CatalogExercise] = [

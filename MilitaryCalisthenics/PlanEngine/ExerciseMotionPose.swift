@@ -215,6 +215,62 @@ enum ExerciseMotionPose {
                 horizontal: true
             )
 
+        case .twist:
+            // Seated, knees bent and feet off the floor, torso rotating
+            // side to side with both hands tracking the rotation.
+            let rot = s * 0.16
+            return StickPose(
+                head: CGPoint(x: 0.5 + rot * 0.4, y: 0.30), neck: CGPoint(x: 0.5 + rot * 0.3, y: 0.38),
+                hip: CGPoint(x: 0.5, y: 0.64),
+                elbowL: CGPoint(x: 0.40 + rot, y: 0.50), elbowR: CGPoint(x: 0.60 + rot, y: 0.50),
+                handL: CGPoint(x: 0.34 + rot * 1.6, y: 0.52), handR: CGPoint(x: 0.66 + rot * 1.6, y: 0.52),
+                kneeL: CGPoint(x: 0.34, y: 0.70), kneeR: CGPoint(x: 0.66, y: 0.70),
+                footL: CGPoint(x: 0.24, y: 0.62), footR: CGPoint(x: 0.76, y: 0.62),
+                horizontal: false
+            )
+
+        case .legRaiseFloor:
+            // Lying on the back, legs sweeping from flat on the floor up
+            // toward vertical and back down.
+            let raise = 0.30 * s01
+            return StickPose(
+                head: CGPoint(x: 0.10, y: 0.72), neck: CGPoint(x: 0.20, y: 0.72),
+                hip: CGPoint(x: 0.50, y: 0.72),
+                elbowL: CGPoint(x: 0.14, y: 0.66), elbowR: CGPoint(x: 0.16, y: 0.78),
+                handL: CGPoint(x: 0.06, y: 0.60), handR: CGPoint(x: 0.06, y: 0.84),
+                kneeL: CGPoint(x: 0.68, y: 0.72 - raise), kneeR: CGPoint(x: 0.70, y: 0.72 - raise),
+                footL: CGPoint(x: 0.86, y: 0.72 - raise * 1.8), footR: CGPoint(x: 0.90, y: 0.72 - raise * 1.8),
+                horizontal: true
+            )
+
+        case .crunch:
+            // Lying on the back, knees bent and feet planted, shoulders
+            // curling a short distance up toward the knees.
+            let curl = 0.10 * s01
+            return StickPose(
+                head: CGPoint(x: 0.16 + curl, y: 0.66 - curl), neck: CGPoint(x: 0.26 + curl, y: 0.68 - curl),
+                hip: CGPoint(x: 0.54, y: 0.72),
+                elbowL: CGPoint(x: 0.20 + curl, y: 0.58), elbowR: CGPoint(x: 0.22 + curl, y: 0.62),
+                handL: CGPoint(x: 0.18, y: 0.62), handR: CGPoint(x: 0.20, y: 0.66),
+                kneeL: CGPoint(x: 0.76, y: 0.56), kneeR: CGPoint(x: 0.78, y: 0.60),
+                footL: CGPoint(x: 0.92, y: 0.72), footR: CGPoint(x: 0.94, y: 0.74),
+                horizontal: true
+            )
+
+        case .superman:
+            // Lying face down, chest and legs lifting off the floor
+            // together, arms reaching forward past the head.
+            let lift = 0.10 * s01
+            return StickPose(
+                head: CGPoint(x: 0.10, y: 0.60 - lift * 1.4), neck: CGPoint(x: 0.22, y: 0.64 - lift),
+                hip: CGPoint(x: 0.52, y: 0.70),
+                elbowL: CGPoint(x: 0.06, y: 0.58 - lift), elbowR: CGPoint(x: 0.06, y: 0.66 - lift),
+                handL: CGPoint(x: 0.02, y: 0.56 - lift * 1.2), handR: CGPoint(x: 0.02, y: 0.64 - lift * 1.2),
+                kneeL: CGPoint(x: 0.78, y: 0.70 - lift * 0.6), kneeR: CGPoint(x: 0.80, y: 0.72 - lift * 0.6),
+                footL: CGPoint(x: 0.94, y: 0.68 - lift * 1.4), footR: CGPoint(x: 0.96, y: 0.70 - lift * 1.4),
+                horizontal: true
+            )
+
         case .jumpingJack:
             let open = s01
             return StickPose(

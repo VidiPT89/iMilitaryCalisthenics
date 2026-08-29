@@ -20,6 +20,10 @@ enum ExerciseMotionKind {
     case sprint
     case plank
     case sidePlank
+    case twist
+    case legRaiseFloor
+    case crunch
+    case superman
     case jumpingJack
     case armCircle
     case legSwing
@@ -82,6 +86,10 @@ enum ExerciseMotion {
         "exercise.plank": (.plank, "cue.plank"),
         "exercise.sidePlank": (.sidePlank, "cue.sidePlank"),
         "exercise.mountainClimbersCore": (.mountainClimber, "cue.mountainClimber"),
+        "exercise.russianTwists": (.twist, "cue.russianTwists"),
+        "exercise.legRaisesFloor": (.legRaiseFloor, "cue.legRaisesFloor"),
+        "exercise.bicycleCrunches": (.crunch, "cue.bicycleCrunches"),
+        "exercise.supermanHold": (.superman, "cue.supermanHold"),
 
         "exercise.hipOpeners": (.hipOpen, "cue.hipOpeners"),
         "exercise.catCow": (.catCow, "cue.catCow"),

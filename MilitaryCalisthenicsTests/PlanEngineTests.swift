@@ -230,6 +230,24 @@ final class PlanEngineTests: XCTestCase {
         XCTAssertNotEqual(week1Names, week2Names, "strength selection should vary week to week, not repeat identically")
     }
 
+    func testCorePoolIsBigEnoughThatPlankIsNotOnEveryDay() {
+        // Regression test: the core pool used to have only 3 exercises with
+        // 2 picked per day, so plank appeared on ~2/3 of all days. A wider
+        // pool should bring that down noticeably.
+        let profile = makeProfile(goal: .fatLoss, daysPerWeek: 6)
+        let plan = PlanEngine.generate(for: profile)
+        var totalDays = 0
+        var plankDays = 0
+        for week in plan.weeks {
+            for day in week.days {
+                totalDays += 1
+                let coreNames = day.blocks.first(where: { $0.kind == .core })?.exercises.map(\.name) ?? []
+                if coreNames.contains("exercise.plank") { plankDays += 1 }
+            }
+        }
+        XCTAssertLessThan(Double(plankDays) / Double(totalDays), 0.5, "plank should not appear on the majority of days")
+    }
+
     func testEveryDayLabelHasPortugueseAndEnglishTranslations() {
         let dayKeys = [
             "day.upper", "day.lower", "day.fullBody", "day.fullBody1", "day.fullBody2",
