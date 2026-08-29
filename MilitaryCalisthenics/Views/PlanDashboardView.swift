@@ -4,6 +4,7 @@ struct PlanDashboardView: View {
     var viewModel: PlanViewModel
     let theme = Theme.shared
     @State private var showingPlanComplete = false
+    @State private var showingSession = false
 
     var body: some View {
         ScrollView {
@@ -16,6 +17,7 @@ struct PlanDashboardView: View {
                     }
                     daySelector(week: week)
                     progressRing
+                    startWorkoutButton
                     if let day = viewModel.currentDay {
                         VStack(spacing: 16) {
                             ForEach(day.blocks) { block in
@@ -54,6 +56,31 @@ struct PlanDashboardView: View {
             PlanCompleteSheet(viewModel: viewModel, isPresented: $showingPlanComplete)
                 .presentationDetents([.medium])
         }
+        .fullScreenCover(isPresented: $showingSession) {
+            if let day = viewModel.currentDay {
+                WorkoutSessionView(day: day) {
+                    viewModel.markDayComplete(day)
+                }
+            }
+        }
+    }
+
+    private var startWorkoutButton: some View {
+        Button {
+            showingSession = true
+        } label: {
+            HStack {
+                Image(systemName: "play.fill")
+                Text(t("session.start"))
+            }
+            .font(.headline)
+            .foregroundStyle(.black)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(theme.accentGradient)
+            .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
+        }
+        .buttonStyle(PressableButtonStyle())
     }
 
     private var header: some View {

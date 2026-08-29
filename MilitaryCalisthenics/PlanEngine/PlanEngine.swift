@@ -54,28 +54,76 @@ enum PlanEngine {
     private static func buildDay(label: String, splitIndex: Int, profile: UserProfile, intensity: Double, scale: Double) -> DailyWorkout {
         let warmupBlock = block(.warmup, from: ExerciseCatalog.warmup, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 15)
 
+        let hasCircuit = includeCircuit(for: profile.goal, label: label)
+        let budget = SessionBudget(sessionMinutes: profile.sessionMinutes, hasCircuit: hasCircuit)
+
         let strengthPool = ExerciseCatalog.availableStrength(for: profile.equipment)
             .filter { levelAllows($0.minLevel, profile.level) }
-        let strengthExercises = pick(from: strengthPool, splitIndex: splitIndex, count: profile.goal == .strengthMass ? 5 : 4)
         let strengthRest = profile.goal == .strengthMass ? 75 : 45
+        let strengthCount = exerciseCount(pool: strengthPool, budgetSeconds: budget.strengthSeconds, sets: 4, restSeconds: strengthRest, intensity: intensity, scale: scale)
+        let strengthExercises = pick(from: strengthPool, splitIndex: splitIndex, count: strengthCount)
         let strengthBlock = block(.strength, from: strengthExercises, count: strengthExercises.count, profile: profile, intensity: intensity, scale: scale, rest: strengthRest)
 
         var blocks = [warmupBlock, strengthBlock]
 
-        if includeCircuit(for: profile.goal, label: label) {
+        if hasCircuit {
             let circuitPool = ExerciseCatalog.circuit.filter { !( $0.skipOverForty && profile.ageBand == .over40 ) }
-            let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, count: profile.goal == .militaryEndurance ? 5 : 4)
             let circuitRest = profile.goal == .fatLoss ? 30 : 40
+            let circuitCount = exerciseCount(pool: circuitPool, budgetSeconds: budget.circuitSeconds, sets: 3, restSeconds: circuitRest, intensity: intensity, scale: scale)
+            let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, count: circuitCount)
             blocks.append(block(.circuit, from: circuitExercises, count: circuitExercises.count, profile: profile, intensity: intensity, scale: scale, rest: circuitRest))
         }
 
         let corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
-        let coreExercises = pick(from: corePool, splitIndex: splitIndex, count: 3)
+        let coreCount = exerciseCount(pool: corePool, budgetSeconds: budget.coreSeconds, sets: 3, restSeconds: 20, intensity: intensity, scale: scale)
+        let coreExercises = pick(from: corePool, splitIndex: splitIndex, count: coreCount)
         blocks.append(block(.core, from: coreExercises, count: coreExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 20))
 
         blocks.append(block(.cooldown, from: ExerciseCatalog.cooldown, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 10))
 
         return DailyWorkout(dayLabel: label, blocks: blocks)
+    }
+
+    /// Splits the time left after warm-up/cool-down across the variable
+    /// blocks, per docs/plan-engine-spec.md "Session duration budget".
+    private struct SessionBudget {
+        let strengthSeconds: Int
+        let coreSeconds: Int
+        let circuitSeconds: Int
+
+        init(sessionMinutes: Int, hasCircuit: Bool) {
+            let warmupSeconds = 180
+            let cooldownSeconds = 120
+            let total = max(0, sessionMinutes * 60 - warmupSeconds - cooldownSeconds)
+            if hasCircuit {
+                strengthSeconds = Int(Double(total) * 0.5)
+                coreSeconds = Int(Double(total) * 0.2)
+                circuitSeconds = Int(Double(total) * 0.3)
+            } else {
+                strengthSeconds = Int(Double(total) * 0.65)
+                coreSeconds = Int(Double(total) * 0.35)
+                circuitSeconds = 0
+            }
+        }
+    }
+
+    /// Largest exercise count from `pool` whose estimated total time (sets *
+    /// (work + rest), see spec) fits `budgetSeconds`, clamped to 1...pool.count.
+    private static func exerciseCount(pool: [CatalogExercise], budgetSeconds: Int, sets: Int, restSeconds: Int, intensity: Double, scale: Double) -> Int {
+        guard !pool.isEmpty else { return 0 }
+        let totalWorkSeconds = pool.reduce(0.0) { partial, entry in
+            if let reps = entry.baseReps {
+                return partial + Double(reps) * 3.0 * intensity * scale
+            } else if let seconds = entry.baseSeconds {
+                return partial + Double(seconds) * intensity * scale
+            }
+            return partial
+        }
+        let avgWorkSeconds = totalWorkSeconds / Double(pool.count)
+        let perExerciseSeconds = Double(sets) * (avgWorkSeconds + Double(restSeconds))
+        guard perExerciseSeconds > 0 else { return pool.count }
+        let count = Int((Double(budgetSeconds) / perExerciseSeconds).rounded(.down))
+        return max(1, min(pool.count, count))
     }
 
     private static func includeCircuit(for goal: Goal, label: String) -> Bool {

@@ -11,11 +11,13 @@ final class PlanEngineTests: XCTestCase {
         level: FitnessLevel = .intermediate,
         goal: Goal = .fatLoss,
         daysPerWeek: Int = 4,
-        equipment: Equipment = .bodyweightOnly
+        equipment: Equipment = .bodyweightOnly,
+        sessionMinutes: Int = 30
     ) -> UserProfile {
         UserProfile(
             weightKg: weightKg, heightCm: heightCm, age: age, sex: .unspecified,
-            level: level, goal: goal, daysPerWeek: daysPerWeek, equipment: equipment
+            level: level, goal: goal, daysPerWeek: daysPerWeek, equipment: equipment,
+            sessionMinutes: sessionMinutes
         )
     }
 
@@ -120,16 +122,30 @@ final class PlanEngineTests: XCTestCase {
         XCTAssertEqual(viewModel.profile?.weightKg, 85, "profile should revert to the new most-recent entry")
     }
 
-    func testStrengthMassGoalRequestsMoreExercisesThanOtherGoals() {
+    func testStrengthMassGoalUsesLongerRestThanFatLoss() {
+        // strengthMass favors fewer, heavier movements with more rest between
+        // sets rather than more exercises (docs/plan-engine-spec.md "Blocks").
         let strengthMass = PlanEngine.generate(for: makeProfile(goal: .strengthMass))
         let fatLoss = PlanEngine.generate(for: makeProfile(goal: .fatLoss))
 
-        let strengthMassCount = strengthMass.weeks.first?.days.first?.blocks
+        let strengthMassRest = strengthMass.weeks.first?.days.first?.blocks
+            .first(where: { $0.kind == .strength })?.exercises.first?.restSeconds ?? 0
+        let fatLossRest = fatLoss.weeks.first?.days.first?.blocks
+            .first(where: { $0.kind == .strength })?.exercises.first?.restSeconds ?? 0
+
+        XCTAssertGreaterThan(strengthMassRest, fatLossRest)
+    }
+
+    func testLongerSessionProducesAtLeastAsManyStrengthExercises() {
+        let short = PlanEngine.generate(for: makeProfile(sessionMinutes: 15))
+        let long = PlanEngine.generate(for: makeProfile(sessionMinutes: 60))
+
+        let shortCount = short.weeks.first?.days.first?.blocks
             .first(where: { $0.kind == .strength })?.exercises.count ?? 0
-        let fatLossCount = fatLoss.weeks.first?.days.first?.blocks
+        let longCount = long.weeks.first?.days.first?.blocks
             .first(where: { $0.kind == .strength })?.exercises.count ?? 0
 
-        XCTAssertGreaterThan(strengthMassCount, fatLossCount)
+        XCTAssertGreaterThanOrEqual(longCount, shortCount)
     }
 
     func testEveryCatalogExerciseCueHasPortugueseAndEnglishTranslations() {

@@ -11,6 +11,7 @@ final class PersistedProfile {
     var goalRaw: String
     var daysPerWeek: Int
     var equipmentRaw: String
+    var sessionMinutes: Int = 30
     var completedExerciseIDs: [String]
     var planCompletionAcknowledged: Bool = false
 
@@ -23,6 +24,7 @@ final class PersistedProfile {
         self.goalRaw = profile.goal.rawValue
         self.daysPerWeek = profile.daysPerWeek
         self.equipmentRaw = profile.equipment.rawValue
+        self.sessionMinutes = profile.sessionMinutes
         self.completedExerciseIDs = []
         self.planCompletionAcknowledged = false
     }
@@ -36,7 +38,8 @@ final class PersistedProfile {
             level: FitnessLevel(rawValue: levelRaw) ?? .beginner,
             goal: Goal(rawValue: goalRaw) ?? .fatLoss,
             daysPerWeek: daysPerWeek,
-            equipment: Equipment(rawValue: equipmentRaw) ?? .bodyweightOnly
+            equipment: Equipment(rawValue: equipmentRaw) ?? .bodyweightOnly,
+            sessionMinutes: sessionMinutes
         )
     }
 
@@ -49,6 +52,7 @@ final class PersistedProfile {
         goalRaw = profile.goal.rawValue
         daysPerWeek = profile.daysPerWeek
         equipmentRaw = profile.equipment.rawValue
+        sessionMinutes = profile.sessionMinutes
         completedExerciseIDs = []
         planCompletionAcknowledged = false
     }

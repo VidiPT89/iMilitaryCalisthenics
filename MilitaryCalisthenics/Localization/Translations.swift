@@ -29,6 +29,7 @@ enum Translations {
         "onboarding.equipment.bodyweightOnly": [.pt: "Só peso do corpo", .en: "Bodyweight only"],
         "onboarding.equipment.pullUpBar": [.pt: "+ Barra de tração", .en: "+ Pull-up bar"],
         "onboarding.equipment.parallettes": [.pt: "+ Paralelas", .en: "+ Parallettes"],
+        "onboarding.sessionMinutes": [.pt: "Tempo disponível", .en: "Time available"],
         "onboarding.generate": [.pt: "Gerar plano", .en: "Generate plan"],
         "onboarding.error.range": [.pt: "Verifica os valores introduzidos.", .en: "Check the values you entered."],
 
@@ -71,6 +72,18 @@ enum Translations {
         "exercise.seconds": [.pt: "seg", .en: "sec"],
         "exercise.rest": [.pt: "descanso", .en: "rest"],
         "exercise.markDone": [.pt: "Concluído", .en: "Done"],
+        "exercise.set": [.pt: "Série", .en: "Set"],
+
+        // Guided workout session
+        "session.start": [.pt: "Iniciar treino", .en: "Start workout"],
+        "session.rest": [.pt: "Descanso", .en: "Rest"],
+        "session.done": [.pt: "Feito", .en: "Done"],
+        "session.skipRest": [.pt: "Saltar descanso", .en: "Skip rest"],
+        "session.pause": [.pt: "Pausar", .en: "Pause"],
+        "session.resume": [.pt: "Retomar", .en: "Resume"],
+        "session.exitConfirm": [.pt: "Sair do treino? O progresso desta sessão não fica guardado.", .en: "Exit the workout? This session's progress won't be saved."],
+        "session.exitCancel": [.pt: "Continuar", .en: "Continue"],
+        "session.exitConfirmAction": [.pt: "Sair", .en: "Exit"],
 
         // Exercise names
         "exercise.jumpingJacks": [.pt: "Polichinelos", .en: "Jumping Jacks"],

@@ -158,6 +158,19 @@ final class PlanViewModel {
         plan = PlanEngine.generate(for: profile)
     }
 
+    /// Marks every exercise of `day` as done — called when a guided
+    /// `WorkoutSessionView` finishes its last step. See
+    /// docs/plan-engine-spec.md "Guided workout session (timer)".
+    func markDayComplete(_ day: DailyWorkout) {
+        for block in day.blocks {
+            for exercise in block.exercises {
+                completedExerciseIDs.insert(exerciseKey(day: day, exercise: exercise))
+            }
+        }
+        storedProfile?.completedExerciseIDs = Array(completedExerciseIDs)
+        try? context?.save()
+    }
+
     func toggleCompleted(_ exerciseID: String) {
         if completedExerciseIDs.contains(exerciseID) {
             completedExerciseIDs.remove(exerciseID)
