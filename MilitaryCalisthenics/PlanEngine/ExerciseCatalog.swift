@@ -64,15 +64,43 @@ enum ExerciseCatalog {
         CatalogExercise(name: "exercise.lSit", block: .core, baseSeconds: 15, minLevel: .advanced, requires: .parallettes),
     ]
 
-    static let circuit: [CatalogExercise] = [
+    /// Goal-specific circuit pools (used only for goals where `includeCircuit`
+    /// is true: militaryEndurance, fatLoss, and strengthMass's conditioning
+    /// day). Each is rotated by day+week like the strength pool, and filtered
+    /// by level/age the same way, so the "conditioning" identity of a goal
+    /// stays intact while still varying day to day.
+    static let circuitMilitaryEndurance: [CatalogExercise] = [
         CatalogExercise(name: "exercise.burpees", block: .circuit, baseReps: 12, skipOverForty: true),
         CatalogExercise(name: "exercise.mountainClimbers", block: .circuit, baseSeconds: 30),
+        CatalogExercise(name: "exercise.sprints", block: .circuit, baseSeconds: 20),
+        CatalogExercise(name: "exercise.highKneesCircuit", block: .circuit, baseSeconds: 30),
+        CatalogExercise(name: "exercise.shuttleRuns", block: .circuit, baseSeconds: 30),
+        CatalogExercise(name: "exercise.bearCrawl", block: .circuit, baseSeconds: 30),
+    ]
+
+    static let circuitFatLoss: [CatalogExercise] = [
+        CatalogExercise(name: "exercise.burpees", block: .circuit, baseReps: 12, skipOverForty: true),
         CatalogExercise(name: "exercise.jumpSquats", block: .circuit, baseReps: 14, skipOverForty: true),
+        CatalogExercise(name: "exercise.mountainClimbers", block: .circuit, baseSeconds: 30),
         CatalogExercise(name: "exercise.highKneesCircuit", block: .circuit, baseSeconds: 30),
         CatalogExercise(name: "exercise.bearCrawl", block: .circuit, baseSeconds: 30),
-        CatalogExercise(name: "exercise.sprints", block: .circuit, baseSeconds: 20),
-        CatalogExercise(name: "exercise.shuttleRuns", block: .circuit, baseSeconds: 30),
     ]
+
+    static let circuitStrengthMass: [CatalogExercise] = [
+        CatalogExercise(name: "exercise.mountainClimbers", block: .circuit, baseSeconds: 30),
+        CatalogExercise(name: "exercise.pikePushUps", block: .circuit, baseReps: 8, minLevel: .intermediate),
+        CatalogExercise(name: "exercise.explosivePushUps", block: .circuit, baseReps: 6, minLevel: .intermediate),
+        CatalogExercise(name: "exercise.diamondPushUps", block: .circuit, baseReps: 8, minLevel: .intermediate),
+    ]
+
+    static func circuitPool(for goal: Goal) -> [CatalogExercise] {
+        switch goal {
+        case .militaryEndurance: return circuitMilitaryEndurance
+        case .fatLoss: return circuitFatLoss
+        case .strengthMass: return circuitStrengthMass
+        case .mobility: return []
+        }
+    }
 
     static let core: [CatalogExercise] = [
         CatalogExercise(name: "exercise.plank", block: .core, baseSeconds: 30),
@@ -88,6 +116,9 @@ enum ExerciseCatalog {
         CatalogExercise(name: "exercise.hipOpeners", block: .core, baseSeconds: 30),
         CatalogExercise(name: "exercise.catCow", block: .core, baseSeconds: 30),
         CatalogExercise(name: "exercise.shoulderCircles", block: .core, baseSeconds: 30),
+        CatalogExercise(name: "exercise.thoracicRotations", block: .core, baseSeconds: 30),
+        CatalogExercise(name: "exercise.ankleCircles", block: .core, baseSeconds: 20),
+        CatalogExercise(name: "exercise.deepSquatHold", block: .core, baseSeconds: 30),
     ]
 
     static let cooldown: [CatalogExercise] = [

@@ -69,7 +69,13 @@ enum PlanEngine {
         var blocks = [warmupBlock, strengthBlock]
 
         if hasCircuit {
-            let circuitPool = ExerciseCatalog.circuit.filter { !( $0.skipOverForty && profile.ageBand == .over40 ) }
+            let goalCircuitPool = ExerciseCatalog.circuitPool(for: profile.goal)
+                .filter { !( $0.skipOverForty && profile.ageBand == .over40 ) }
+            let levelFiltered = goalCircuitPool.filter { levelAllows($0.minLevel, profile.level) }
+            // strengthMass's conditioning circuit is all intermediate+ (pike/
+            // explosive/diamond push-ups) — without this fallback, a beginner
+            // would get an empty circuit block on that day.
+            let circuitPool = levelFiltered.isEmpty ? goalCircuitPool : levelFiltered
             let circuitRest = profile.goal == .fatLoss ? 30 : 40
             let circuitCount = exerciseCount(pool: circuitPool, budgetSeconds: budget.circuitSeconds, sets: 3, restSeconds: circuitRest, intensity: intensity, scale: scale)
             let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, weekIndex: weekIndex, count: circuitCount)

@@ -150,8 +150,8 @@ final class PlanEngineTests: XCTestCase {
 
     func testEveryCatalogExerciseCueHasPortugueseAndEnglishTranslations() {
         let allExercises = ExerciseCatalog.warmup + ExerciseCatalog.strengthBodyweight
-            + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
-            + ExerciseCatalog.circuit + ExerciseCatalog.core + ExerciseCatalog.mobility
+            + ExerciseCatalog.strengthPullFallback + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
+            + ExerciseCatalog.circuitMilitaryEndurance + ExerciseCatalog.circuitFatLoss + ExerciseCatalog.circuitStrengthMass + ExerciseCatalog.core + ExerciseCatalog.mobility
             + ExerciseCatalog.cooldown
 
         for exercise in allExercises {
@@ -164,8 +164,8 @@ final class PlanEngineTests: XCTestCase {
 
     func testEveryCatalogExerciseHasPortugueseAndEnglishTranslations() {
         let allExercises = ExerciseCatalog.warmup + ExerciseCatalog.strengthBodyweight
-            + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
-            + ExerciseCatalog.circuit + ExerciseCatalog.core + ExerciseCatalog.mobility
+            + ExerciseCatalog.strengthPullFallback + ExerciseCatalog.strengthPullBar + ExerciseCatalog.strengthParallettes
+            + ExerciseCatalog.circuitMilitaryEndurance + ExerciseCatalog.circuitFatLoss + ExerciseCatalog.circuitStrengthMass + ExerciseCatalog.core + ExerciseCatalog.mobility
             + ExerciseCatalog.cooldown
 
         for exercise in allExercises {
@@ -228,6 +228,30 @@ final class PlanEngineTests: XCTestCase {
         let week1Names = plan.weeks[0].days.first?.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name)
         let week2Names = plan.weeks[1].days.first?.blocks.first(where: { $0.kind == .strength })?.exercises.map(\.name)
         XCTAssertNotEqual(week1Names, week2Names, "strength selection should vary week to week, not repeat identically")
+    }
+
+    func testBeginnerStrengthMassConditioningDayCircuitIsNeverEmpty() {
+        // Regression test: the strengthMass conditioning circuit (pike/
+        // explosive/diamond push-ups) is all intermediate+; a beginner
+        // must still get a non-empty circuit block that day.
+        let profile = makeProfile(level: .beginner, goal: .strengthMass, daysPerWeek: 4)
+        let plan = PlanEngine.generate(for: profile)
+        guard let conditioningDay = plan.weeks.first?.days.first(where: { $0.dayLabel == "day.conditioning" }) else {
+            return XCTFail("expected a day.conditioning day")
+        }
+        let circuitExercises = conditioningDay.blocks.first(where: { $0.kind == .circuit })?.exercises ?? []
+        XCTAssertFalse(circuitExercises.isEmpty, "beginner should still get circuit exercises on the conditioning day")
+    }
+
+    func testMilitaryEnduranceCircuitExcludesHighImpactMovesOverForty() {
+        let profile = makeProfile(age: 55, goal: .militaryEndurance, daysPerWeek: 3)
+        let plan = PlanEngine.generate(for: profile)
+        for week in plan.weeks {
+            for day in week.days {
+                let circuitNames = day.blocks.first(where: { $0.kind == .circuit })?.exercises.map(\.name) ?? []
+                XCTAssertFalse(circuitNames.contains("exercise.burpees"), "burpees should be excluded for over-40 users")
+            }
+        }
     }
 
     func testCorePoolIsBigEnoughThatPlankIsNotOnEveryDay() {

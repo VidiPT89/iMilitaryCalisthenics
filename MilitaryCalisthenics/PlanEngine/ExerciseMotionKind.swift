@@ -94,6 +94,11 @@ enum ExerciseMotion {
         "exercise.hipOpeners": (.hipOpen, "cue.hipOpeners"),
         "exercise.catCow": (.catCow, "cue.catCow"),
         "exercise.shoulderCircles": (.shoulderRoll, "cue.shoulderCircles"),
+        "exercise.thoracicRotations": (.shoulderRoll, "cue.thoracicRotations"),
+        "exercise.ankleCircles": (.legSwing, "cue.ankleCircles"),
+        "exercise.deepSquatHold": (.squat, "cue.deepSquatHold"),
+
+        "exercise.explosivePushUps": (.pushUp, "cue.explosivePushUps"),
 
         "exercise.hamstringStretch": (.hamstringStretch, "cue.hamstringStretch"),
         "exercise.quadStretch": (.quadStretch, "cue.quadStretch"),
