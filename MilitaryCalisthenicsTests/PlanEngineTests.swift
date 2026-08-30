@@ -11,7 +11,7 @@ final class PlanEngineTests: XCTestCase {
         level: FitnessLevel = .intermediate,
         goal: Goal = .fatLoss,
         daysPerWeek: Int = 4,
-        equipment: Equipment = .bodyweightOnly,
+        equipment: Set<Equipment> = [.bodyweightOnly],
         sessionMinutes: Int = 30
     ) -> UserProfile {
         UserProfile(
@@ -28,7 +28,7 @@ final class PlanEngineTests: XCTestCase {
             for weight in weights {
                 for goal in Goal.allCases {
                     for level in FitnessLevel.allCases {
-                        for equipment in Equipment.allCases {
+                        for equipment: Set<Equipment> in [[.bodyweightOnly], [.pullUpBar], [.parallettes], [.pullUpBar, .parallettes]] {
                             for days in [3, 6] {
                                 let profile = makeProfile(
                                     weightKg: weight, age: age, level: level,
@@ -177,7 +177,7 @@ final class PlanEngineTests: XCTestCase {
 
     func testNoExerciseNameRepeatsTwiceWithinTheSameDayAcrossBlocks() {
         for goal in Goal.allCases {
-            for equipment in Equipment.allCases {
+            for equipment: Set<Equipment> in [[.bodyweightOnly], [.pullUpBar], [.parallettes], [.pullUpBar, .parallettes]] {
                 for days in [3, 4, 5, 6] {
                 for sessionMinutes in [15, 30, 60] {
                 let profile = makeProfile(goal: goal, daysPerWeek: days, equipment: equipment, sessionMinutes: sessionMinutes)
@@ -203,7 +203,7 @@ final class PlanEngineTests: XCTestCase {
         // on a "Lower Body" day for pull-bar/parallettes users, with zero
         // actual leg work that day.
         let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
-        for equipment: Equipment in [.pullUpBar, .parallettes] {
+        for equipment: Set<Equipment> in [[.pullUpBar], [.parallettes]] {
             let profile = makeProfile(level: .advanced, daysPerWeek: 5, equipment: equipment)
             let plan = PlanEngine.generate(for: profile)
             for week in plan.weeks {
@@ -221,7 +221,7 @@ final class PlanEngineTests: XCTestCase {
         // Regression test: "day.lower" ("Membros Inferiores") used to be a
         // cosmetic label only — the strength block ignored it and could
         // include push-ups/pull exercises on a "lower body" day.
-        let profile = makeProfile(daysPerWeek: 4, equipment: .bodyweightOnly)
+        let profile = makeProfile(daysPerWeek: 4, equipment: [.bodyweightOnly])
         let plan = PlanEngine.generate(for: profile)
         let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
 
@@ -238,7 +238,7 @@ final class PlanEngineTests: XCTestCase {
     }
 
     func testUpperBodyDayNeverContainsLegExercises() {
-        let profile = makeProfile(daysPerWeek: 4, equipment: .bodyweightOnly)
+        let profile = makeProfile(daysPerWeek: 4, equipment: [.bodyweightOnly])
         let plan = PlanEngine.generate(for: profile)
         let legNames: Set<String> = ["exercise.squats", "exercise.lunges", "exercise.gluteBridges"]
 
@@ -256,14 +256,14 @@ final class PlanEngineTests: XCTestCase {
     func testBodyweightOnlyEquipmentHasAPullExercise() {
         // Regression test: bodyweight-only users used to have zero pull-pattern
         // exercises available at all (pull-ups required a bar).
-        let pool = ExerciseCatalog.availableStrength(for: .bodyweightOnly)
-        XCTAssertTrue(pool.contains(where: { $0.pattern == .pull }), "bodyweight-only pool has no pull exercise")
+        let pool = ExerciseCatalog.availableStrength(for: [.bodyweightOnly])
+        XCTAssertTrue(pool.contains(where: { $0.pattern == MovementPattern.pull }), "bodyweight-only pool has no pull exercise")
     }
 
     func testStrengthSelectionVariesAcrossWeeksOfTheSamePlan() {
         // Regression test: the weekly rotation used to be identical every
         // week of a 4-8 week plan (only varied by day, not by week).
-        let profile = makeProfile(level: .advanced, daysPerWeek: 4, equipment: .bodyweightOnly)
+        let profile = makeProfile(level: .advanced, daysPerWeek: 4, equipment: [.bodyweightOnly])
         let plan = PlanEngine.generate(for: profile)
         guard plan.weeks.count >= 2 else { return XCTFail("expected multiple weeks") }
 

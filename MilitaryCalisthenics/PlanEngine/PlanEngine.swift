@@ -95,11 +95,11 @@ enum PlanEngine {
             // raises need a bar, L-sit needs parallettes) — moved here from
             // the strength pool, since they train core, not a strength
             // pattern (see fullStrengthPool above).
-            if profile.equipment == .pullUpBar || profile.equipment == .parallettes {
+            if profile.equipment.contains(.pullUpBar) {
                 corePool += ExerciseCatalog.strengthPullBar
                     .filter { $0.block == .core && levelAllows($0.minLevel, profile.level) }
             }
-            if profile.equipment == .parallettes {
+            if profile.equipment.contains(.parallettes) {
                 corePool += ExerciseCatalog.strengthParallettes
                     .filter { $0.block == .core && levelAllows($0.minLevel, profile.level) }
             }

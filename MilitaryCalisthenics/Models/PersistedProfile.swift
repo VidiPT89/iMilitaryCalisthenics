@@ -23,10 +23,19 @@ final class PersistedProfile {
         self.levelRaw = profile.level.rawValue
         self.goalRaw = profile.goal.rawValue
         self.daysPerWeek = profile.daysPerWeek
-        self.equipmentRaw = profile.equipment.rawValue
+        self.equipmentRaw = Self.encode(profile.equipment)
         self.sessionMinutes = profile.sessionMinutes
         self.completedExerciseIDs = []
         self.planCompletionAcknowledged = false
+    }
+
+    private static func encode(_ equipment: Set<Equipment>) -> String {
+        equipment.map(\.rawValue).sorted().joined(separator: ",")
+    }
+
+    private static func decode(_ raw: String) -> Set<Equipment> {
+        let set = Set(raw.split(separator: ",").compactMap { Equipment(rawValue: String($0)) })
+        return set.isEmpty ? [.bodyweightOnly] : set
     }
 
     var profile: UserProfile {
@@ -38,7 +47,7 @@ final class PersistedProfile {
             level: FitnessLevel(rawValue: levelRaw) ?? .beginner,
             goal: Goal(rawValue: goalRaw) ?? .fatLoss,
             daysPerWeek: daysPerWeek,
-            equipment: Equipment(rawValue: equipmentRaw) ?? .bodyweightOnly,
+            equipment: Self.decode(equipmentRaw),
             sessionMinutes: sessionMinutes
         )
     }
@@ -51,7 +60,7 @@ final class PersistedProfile {
         levelRaw = profile.level.rawValue
         goalRaw = profile.goal.rawValue
         daysPerWeek = profile.daysPerWeek
-        equipmentRaw = profile.equipment.rawValue
+        equipmentRaw = Self.encode(profile.equipment)
         sessionMinutes = profile.sessionMinutes
         completedExerciseIDs = []
         planCompletionAcknowledged = false

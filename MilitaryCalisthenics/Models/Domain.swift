@@ -62,12 +62,12 @@ struct UserProfile: Codable, Equatable {
     var level: FitnessLevel
     var goal: Goal
     var daysPerWeek: Int
-    var equipment: Equipment
+    var equipment: Set<Equipment>
     var sessionMinutes: Int
 
     static let empty = UserProfile(
         weightKg: 75, heightCm: 175, age: 28, sex: .unspecified,
-        level: .beginner, goal: .fatLoss, daysPerWeek: 4, equipment: .bodyweightOnly,
+        level: .beginner, goal: .fatLoss, daysPerWeek: 4, equipment: [.bodyweightOnly],
         sessionMinutes: 30
     )
 
@@ -84,7 +84,8 @@ struct UserProfile: Codable, Equatable {
         (120...230).contains(heightCm) &&
         (14...75).contains(age) &&
         (3...6).contains(daysPerWeek) &&
-        (15...60).contains(sessionMinutes)
+        (15...60).contains(sessionMinutes) &&
+        !equipment.isEmpty
     }
 }
 

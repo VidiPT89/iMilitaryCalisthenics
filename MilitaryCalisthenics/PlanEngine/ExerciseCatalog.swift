@@ -131,14 +131,14 @@ enum ExerciseCatalog {
         CatalogExercise(name: "exercise.deepBreathing", block: .cooldown, baseSeconds: 60),
     ]
 
-    static func availableStrength(for equipment: Equipment) -> [CatalogExercise] {
+    static func availableStrength(for equipment: Set<Equipment>) -> [CatalogExercise] {
         var pool = strengthBodyweight
-        if equipment == .pullUpBar || equipment == .parallettes {
+        if equipment.contains(.pullUpBar) {
             pool += strengthPullBar
         } else {
             pool += strengthPullFallback
         }
-        if equipment == .parallettes { pool += strengthParallettes }
+        if equipment.contains(.parallettes) { pool += strengthParallettes }
         return pool
     }
 }

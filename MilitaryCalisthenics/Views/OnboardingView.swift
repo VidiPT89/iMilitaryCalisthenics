@@ -11,7 +11,7 @@ struct OnboardingView: View {
     @State private var level: FitnessLevel = .beginner
     @State private var goal: Goal = .fatLoss
     @State private var daysPerWeek: Int = 4
-    @State private var equipment: Equipment = .bodyweightOnly
+    @State private var equipment: Set<Equipment> = [.bodyweightOnly]
     @State private var sessionMinutes: Double = 30
     @State private var showError = false
     @State private var appear = false
@@ -31,7 +31,7 @@ struct OnboardingView: View {
                 selectorSection(title: t("onboarding.level"), selection: $level, labelKey: { "onboarding.level.\($0.rawValue)" })
                 selectorSection(title: t("onboarding.goal"), selection: $goal, labelKey: { "onboarding.goal.\($0.rawValue)" })
                 daysSection
-                selectorSection(title: t("onboarding.equipment"), selection: $equipment, labelKey: { "onboarding.equipment.\($0.rawValue)" })
+                equipmentSection
                 sliderRow(title: t("onboarding.sessionMinutes"), value: $sessionMinutes, range: 15...60, step: 5, suffix: "min")
 
                 if showError {
@@ -99,6 +99,35 @@ struct OnboardingView: View {
                             .scaleEffect(daysPerWeek == day ? 1.08 : 1)
                     }
                     .buttonStyle(.plain)
+                }
+            }
+        }
+        .opacity(appear ? 1 : 0)
+    }
+
+    /// Equipment is a set, not a single choice: "Bodyweight only" is always
+    /// the implicit baseline, and pull-up bar / parallettes are independent
+    /// additions on top of it — matching Android's `Set<Equipment>` model
+    /// instead of the old mutually-exclusive picker.
+    private var equipmentSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(t("onboarding.equipment"))
+                .foregroundStyle(theme.textDim)
+                .font(.subheadline)
+            VStack(spacing: 8) {
+                ForEach([Equipment.pullUpBar, .parallettes]) { option in
+                    OptionRow(
+                        label: t("onboarding.equipment.\(option.rawValue)"),
+                        isSelected: equipment.contains(option)
+                    ) {
+                        withAnimation(theme.springAnimation) {
+                            if equipment.contains(option) {
+                                equipment.remove(option)
+                            } else {
+                                equipment.insert(option)
+                            }
+                        }
+                    }
                 }
             }
         }
