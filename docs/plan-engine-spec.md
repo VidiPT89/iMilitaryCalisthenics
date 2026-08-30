@@ -55,22 +55,43 @@ changed to check `equipment.contains(.pullUpBar)` on its own — matching
 Android's `Equipment.PULL_UP_BAR in profile.equipment` — instead of
 granting pull-bar exercises whenever parallettes was picked.
 
-## Calibration
+## Calibration (unified 2026-08-30)
 
-`multiplier = levelMultiplier * ageMultiplier * bmiMultiplier * sexMultiplier * weekProgression`
+Both platforms now use the same two-factor formula — a per-plan
+`intensity` factor (level/BMI/age/sex) combined with a per-week `scale`
+(progression + deload), applied identically:
 
-- `levelMultiplier`: beginner 0.7, intermediate 1.0, advanced 1.3
-- `ageMultiplier`: <25 → 1.1, 25–39 → 1.0, 40–54 → 0.85, ≥55 → 0.7
-- `bmiMultiplier` (BMI = weightKg / (heightM²), used only as a volume
-  signal — never a diagnosis or a gate): <18.5 → 0.9, 18.5–24.9 → 1.0,
-  25–29.9 → 0.9, ≥30 → 0.75
+`reps = max(4, round(baseReps * intensity * scale))`
+`seconds = max(10, round(baseSeconds * intensity * scale))`
+
+**`intensity`** (constant for the whole plan):
+- `levelIntensityFactor`: beginner 0.7, intermediate 0.9, advanced 1.15
+- BMI nudge (BMI = weightKg / (heightM²), a volume signal only — never a
+  diagnosis or a gate): BMI > 27 → `-0.1`, BMI < 18.5 → `+0.1`, otherwise
+  no change
+- age: `age > 40` → `× 0.9`
 - `sexMultiplier` (average upper-body strength/endurance calibration,
   never a gate on goal or exercise selection): male 1.0, female 0.9,
   unspecified 1.0
-- `weekProgression` (linear periodization across 6 weeks): `1.0 + weekIndex * 0.08`
 
-`multiplier` scales base rep counts, hold durations and set counts (rounded,
-sets clamped to 2–5, reps/seconds floored at 1).
+**`scale`** (per week, `w` = 0-indexed week number):
+- Deload week (every 4th week, `(w + 1) % 4 == 0`): fixed `0.6`
+- Otherwise: `1.0 + progressionStep * w`, where `progressionStep` is
+  `0.025` for `age > 40`, else `0.05`
+
+Sets are a fixed count per block kind (warm-up/cool-down 1, strength 4,
+circuit/core 3) — sets themselves are never scaled by `intensity`/`scale`
+on either platform (before this unification, Android additionally scaled
+set *count* itself via a `scaleSets` helper that iOS never had; removed
+so both platforms only vary reps/seconds/duration).
+
+Before 2026-08-30 this was two independently-authored formulas that
+produced materially different volumes for the same profile: Android used
+a single `levelMultiplier * ageMultiplier(4-bucket) * bmiMultiplier(4-bucket)
+* sexMultiplier * (1.0 + weekIndex * 0.08)` with no deload week at all,
+while iOS used the intensity/scale split above. Android was rewritten to
+match iOS exactly, including the deload week (`WeeklyPlan.isDeload`,
+added to the Android model to match iOS's `WeekPlan.isDeload`).
 
 ## Day split & movement pattern filtering (unified 2026-08-30)
 
@@ -118,63 +139,70 @@ deterministic (same profile → same plan), it's not randomized.
 
 ## Blocks
 
-**Warm-up** (fixed, not scaled): jumping jacks 60s, arm circles 30s,
-bodyweight squats x15, hip openers 30s.
+**Exercise catalog unified 2026-08-30**: before this, Android and iOS
+carried two independently-authored exercise catalogs — different names,
+different base reps/durations for the same movement, and some exercises
+that existed on only one platform (iOS-only: Diamond Push-ups, Negative
+Pull-ups, Hanging Leg Raises, L-sit; Android-only: an unconditional
+"Bench Dips" fallback with no equipment gate that iOS never offered).
+Android's catalog was rewritten to match iOS's exactly — same names, same
+base values, same equipment/level gates — so the same profile now
+produces the same exercise selection (names and volumes) on both
+platforms. iOS is the catalog's source of truth going forward; port
+catalog changes there first.
 
-**Strength pool** (base reps before scaling, `sets` scaled from base 3),
-tagged by movement pattern and filtered/rotated per "Movement pattern
-filtering" above:
-- push: push-ups x12, wide push-ups x10, diamond push-ups x8 (iOS,
-  intermediate+), pike push-ups x8; plus equipment-dependent: parallel bar
-  dips x8 if `parallettes` else bench dips x10.
-- pull: pull-ups x6 (intermediate+) and chin-ups x6 if `pullUpBar`, else
-  inverted/table rows x10.
-- legs: bodyweight squats x18, lunges x12, glute bridges x15 (same pool on
-  both platforms as of this fix — Android's leg pool previously only had
-  squats+lunges).
+**Warm-up** (fixed to the pool's first 3 entries — `.take(3)`/`.prefix(3)`
+on both platforms, deliberately not rotated; `Leg Swings` and `Light
+Squats` sit unused past index 2, kept for parity with iOS): jumping jacks
+40s, arm circles 30s, leg swings 30s. Scaled by `intensity * scale` like
+every other block; `sets` fixed at 1.
 
-**Circuit** (rounds scaled from base 3), goal-specific pools, filtered by
-level and age and rotated by day+week (fixed 2026-08-29 — previously a
-static list per goal with no rotation and no level/age filtering at all).
-Included only when `includeCircuit(goal, label)` allows it — identical
-rule on both platforms as of 2026-08-30: `fatLoss`/`militaryEndurance`
+**Strength pool** (base reps before scaling), tagged by movement pattern
+and filtered/rotated per "Movement pattern filtering" above:
+- push: push-ups x12, wide push-ups x10, diamond push-ups x8
+  (intermediate+), pike push-ups x8 (intermediate+); plus
+  equipment-dependent pull-pattern additions below.
+- pull: if `pullUpBar` — pull-ups x6 (intermediate+), chin-ups x6,
+  negative pull-ups x5; else inverted rows (table) x10 as the
+  bodyweight-only fallback.
+- push (parallettes): dips x10, unlocked only when `parallettes` is
+  selected — no bodyweight substitute (this replaces Android's old
+  always-available "Bench Dips", which let bodyweight-only users get an
+  extra push exercise iOS never offered).
+- legs: squats x18, lunges x12, glute bridges x15.
+- bonus core unlocks (not strength-pattern, live in the Core pool
+  instead): hanging leg raises x10 (intermediate+, `pullUpBar`), L-sit
+  15s (advanced, `parallettes`).
+
+**Circuit** (`sets` fixed at 3), goal-specific pools, filtered by level
+and age (`age > 40`) and rotated by day+week. Included only when
+`includeCircuit(goal, label)` allows it: `fatLoss`/`militaryEndurance`
 every day, `strengthMass` only on the `Conditioning` day, `mobility`
-never (no circuit block at all for that goal, on either platform):
-- militaryEndurance: burpees x10 (skip over-40), mountain climbers 40s, sprint intervals 30s, high knees 30s, shuttle runs 30s, bear crawl 30s
-- fatLoss: burpees x8 (skip over-40), jump squats x12 (skip over-40), mountain climbers 40s, high knees 30s, bear crawl 30s
-- strengthMass: mountain climbers 30s, explosive push-ups x6 (intermediate+), jump squats x14 (skip over-40, iOS)/plus diamond push-ups (intermediate+, iOS only) — deliberately excludes pike/diamond push-ups from reappearing here on Android since they already live in the strength pool's push list and reusing them let the same exercise appear twice in one day
+never (no circuit block at all for that goal):
+- militaryEndurance: burpees x12 (skip over-40), mountain climbers 30s, sprints 20s, high knees (circuit) 30s, shuttle runs 30s, bear crawl 30s
+- fatLoss: burpees x12 (skip over-40), jump squats x14 (skip over-40), mountain climbers 30s, high knees (circuit) 30s, bear crawl 30s
+- strengthMass: mountain climbers 30s, explosive push-ups x6 (intermediate+), jump squats x14 (skip over-40) — deliberately excludes pike/diamond push-ups from reappearing here since they already live in the strength pool's push list and reusing them let the same exercise appear twice in one day
 
 If level-filtering a circuit pool would leave it empty (e.g. a beginner on
-strengthMass's conditioning day, where 3 of 4 exercises are intermediate+),
+strengthMass's conditioning day, where 2 of 3 exercises are intermediate+),
 the engine falls back to the age-filtered pool rather than producing an
 empty block — mountain climbers exists in that pool specifically so
 beginners always have at least one valid option before the fallback is
 ever needed.
 
-**Age safety**: `skipOverForty` circuit exercises (high-impact plyometric
-moves — burpees, jump squats) are excluded for `age > 40` on both
-platforms as of 2026-08-29 — previously only iOS had this exclusion,
-Android had none.
+**Core** (`sets` fixed at 3): plank 30s, side plank 20s, mountain climbers
+(core) 25s, Russian twists x20, leg raises (floor) x12, bicycle crunches
+x20, superman hold 20s — plus the equipment-unlocked bonus exercises from
+the strength pool above, appended when the relevant equipment is
+selected. Rotated by day+week the same way as strength.
 
-**Level gating extended to the strength pool on Android** (2026-08-29):
-Pike Push-ups now requires intermediate+ on Android too, matching iOS —
-previously Android had no level gating anywhere, so a first-day beginner
-could be handed Pike Push-ups.
+**Mobility goal swaps Core for mobility drills on both platforms**: hip
+openers 30s, cat-cow 30s, shoulder circles 30s, thoracic rotations 30s,
+ankle circles 20s, deep squat hold 30s.
 
-**Core** (sets fixed at 3, all scaled by multiplier), pool expanded from
-3 to 7 exercises on 2026-08-29 (previously so small that Plank alone
-covered ~67% of days on iOS, and 100% of days on Android since Android
-additionally had no rotation at all): plank 45s, side plank 30s, mountain
-climbers (core) 35s, Russian twists x20, leg raises x12, bicycle crunches
-x20, superman hold 20s. Rotated by day+week the same way as strength.
-
-**Mobility goal swaps Core for mobility drills on both platforms**
-(2026-08-29 — previously Android always trained abs even on the Mobility
-goal, unlike iOS): hip openers 30s, cat-cow 10x, shoulder circles 30s,
-thoracic rotations 30s, ankle circles 20s, deep squat hold 30s (pool
-expanded from 3 to 6 on iOS for the same reason as Core above).
-
-**Cool-down** (fixed, not scaled): deep breathing 60s, hamstring stretch 30s, shoulder stretch 30s.
+**Cool-down** (fixed to the pool's first 3 entries, same `.take(3)` rule
+as warm-up; `Deep Breathing` sits unused past index 2): hamstring stretch
+30s, quad stretch 30s, child's pose 40s. `sets` fixed at 1.
 
 ## Session duration budget
 
