@@ -314,6 +314,44 @@ func testBeginnerStrengthMassConditioningDayCircuitIsNeverEmpty() {
         XCTAssertLessThan(Double(plankDays) / Double(totalDays), 0.5, "plank should not appear on the majority of days")
     }
 
+    func testWarmupAndCooldownVaryAcrossDaysAndWeeks() {
+        // Regression test: warm-up/cool-down used to always take the
+        // catalog's first 3 entries with no rotation, so both blocks were
+        // byte-for-byte identical on every day of every week.
+        let profile = makeProfile(daysPerWeek: 6)
+        let plan = PlanEngine.generate(for: profile)
+        guard plan.weeks.count >= 2, plan.weeks[0].days.count >= 2 else {
+            return XCTFail("expected multiple weeks and days")
+        }
+
+        let day1Warmup = plan.weeks[0].days[0].blocks.first(where: { $0.kind == .warmup })?.exercises.map(\.name)
+        let day2Warmup = plan.weeks[0].days[1].blocks.first(where: { $0.kind == .warmup })?.exercises.map(\.name)
+        XCTAssertNotEqual(day1Warmup, day2Warmup, "warm-up should vary across days of the same week")
+
+        let week1Cooldown = plan.weeks[0].days[0].blocks.first(where: { $0.kind == .cooldown })?.exercises.map(\.name)
+        let week2Cooldown = plan.weeks[1].days[0].blocks.first(where: { $0.kind == .cooldown })?.exercises.map(\.name)
+        XCTAssertNotEqual(week1Cooldown, week2Cooldown, "cool-down should vary across weeks")
+    }
+
+    func testMountainClimbersNeverAppearsInBothCircuitAndCoreOnTheSameDay() {
+        // Regression test: the circuit pool's "exercise.mountainClimbers"
+        // and the core pool's "exercise.mountainClimbersCore" are the same
+        // physical exercise under two different catalog names, so the
+        // existing exact-name duplicate check never caught them showing up
+        // together on the same day.
+        for goal in Goal.allCases {
+            let profile = makeProfile(goal: goal, daysPerWeek: 6)
+            let plan = PlanEngine.generate(for: profile)
+            for week in plan.weeks {
+                for day in week.days {
+                    let circuitHasIt = day.blocks.first(where: { $0.kind == .circuit })?.exercises.contains(where: { $0.name == "exercise.mountainClimbers" }) ?? false
+                    let coreHasIt = day.blocks.first(where: { $0.kind == .core })?.exercises.contains(where: { $0.name == "exercise.mountainClimbersCore" }) ?? false
+                    XCTAssertFalse(circuitHasIt && coreHasIt, "\(goal) day \(day.dayLabel) has Mountain Climbers in both circuit and core")
+                }
+            }
+        }
+    }
+
     func testEveryDayLabelHasPortugueseAndEnglishTranslations() {
         let dayKeys = [
             "day.upper", "day.lower", "day.fullBody", "day.fullBody1", "day.fullBody2",

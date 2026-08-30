@@ -151,11 +151,14 @@ produces the same exercise selection (names and volumes) on both
 platforms. iOS is the catalog's source of truth going forward; port
 catalog changes there first.
 
-**Warm-up** (fixed to the pool's first 3 entries — `.take(3)`/`.prefix(3)`
-on both platforms, deliberately not rotated; `Leg Swings` and `Light
-Squats` sit unused past index 2, kept for parity with iOS): jumping jacks
-40s, arm circles 30s, leg swings 30s. Scaled by `intensity * scale` like
-every other block; `sets` fixed at 1.
+**Warm-up** (rotated by day+week via the same `pick` function used for
+every other block, count 3 of 5 catalog entries): jumping jacks 40s, arm
+circles 30s, leg swings 30s, high knees 30s, light squats x12. Scaled by
+`intensity * scale` like every other block; `sets` fixed at 1. Before
+2026-08-30 both platforms always took the pool's unrotated first 3
+entries (`.prefix(3)`/`.take(3)`), so warm-up was byte-for-byte identical
+on every single day of every week, and the pool's last 2 entries were
+dead code.
 
 **Strength pool** (base reps before scaling), tagged by movement pattern
 and filtered/rotated per "Movement pattern filtering" above:
@@ -196,13 +199,24 @@ x20, superman hold 20s — plus the equipment-unlocked bonus exercises from
 the strength pool above, appended when the relevant equipment is
 selected. Rotated by day+week the same way as strength.
 
+**"Mountain Climbers" cross-block dedup (fixed 2026-08-30)**: every
+circuit pool includes "Mountain Climbers", and the core pool's "Mountain
+Climbers (core)" is the same physical exercise under a different catalog
+name — the exact-name duplicate check never caught the two showing up
+together, so on any day with a circuit block (most days, for most goals)
+the user could see "Mountain Climbers" listed twice. On days where
+`includeCircuit(goal, label)` is true, "Mountain Climbers (core)" is now
+excluded from the core pool before selection, on both platforms.
+
 **Mobility goal swaps Core for mobility drills on both platforms**: hip
 openers 30s, cat-cow 30s, shoulder circles 30s, thoracic rotations 30s,
 ankle circles 20s, deep squat hold 30s.
 
-**Cool-down** (fixed to the pool's first 3 entries, same `.take(3)` rule
-as warm-up; `Deep Breathing` sits unused past index 2): hamstring stretch
-30s, quad stretch 30s, child's pose 40s. `sets` fixed at 1.
+**Cool-down** (rotated by day+week via `pick`, count 3 of 4 catalog
+entries): hamstring stretch 30s, quad stretch 30s, child's pose 40s, deep
+breathing 60s. `sets` fixed at 1. Same "always unrotated first 3" bug as
+warm-up before 2026-08-30 (see above) — `Deep Breathing` was permanently
+dead code.
 
 ## Session duration budget
 

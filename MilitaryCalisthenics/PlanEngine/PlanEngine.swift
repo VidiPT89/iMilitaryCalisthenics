@@ -52,7 +52,12 @@ enum PlanEngine {
     }
 
     private static func buildDay(label: String, splitIndex: Int, weekIndex: Int, profile: UserProfile, intensity: Double, scale: Double) -> DailyWorkout {
-        let warmupBlock = block(.warmup, from: ExerciseCatalog.warmup, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 15)
+        // Rotated like every other block (see `pick`) — previously always
+        // took the catalog's first 3 entries with no rotation at all, so
+        // warm-up (and cool-down, below) was identical on every single day
+        // of every week, and the catalog's remaining entries were dead code.
+        let warmupExercises = pick(from: ExerciseCatalog.warmup, splitIndex: splitIndex, weekIndex: weekIndex, count: 3)
+        let warmupBlock = block(.warmup, from: warmupExercises, count: warmupExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 15)
 
         let hasCircuit = includeCircuit(for: profile.goal, label: label)
         let budget = SessionBudget(sessionMinutes: profile.sessionMinutes, hasCircuit: hasCircuit)
@@ -90,6 +95,13 @@ enum PlanEngine {
         }
 
         var corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
+        if hasCircuit {
+            // Every circuit pool includes "exercise.mountainClimbers" — its
+            // core-block sibling "exercise.mountainClimbersCore" is the same
+            // physical exercise under a different name, so on any day that
+            // has a circuit block it would otherwise show up twice.
+            corePool = corePool.filter { $0.name != "exercise.mountainClimbersCore" }
+        }
         if profile.goal != .mobility {
             // Bonus core exercises that unlock with equipment (hanging leg
             // raises need a bar, L-sit needs parallettes) — moved here from
@@ -108,7 +120,8 @@ enum PlanEngine {
         let coreExercises = pick(from: corePool, splitIndex: splitIndex, weekIndex: weekIndex, count: coreCount)
         blocks.append(block(.core, from: coreExercises, count: coreExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 20))
 
-        blocks.append(block(.cooldown, from: ExerciseCatalog.cooldown, count: 3, profile: profile, intensity: intensity, scale: scale, rest: 10))
+        let cooldownExercises = pick(from: ExerciseCatalog.cooldown, splitIndex: splitIndex, weekIndex: weekIndex, count: 3)
+        blocks.append(block(.cooldown, from: cooldownExercises, count: cooldownExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 10))
 
         return DailyWorkout(dayLabel: label, blocks: blocks)
     }
