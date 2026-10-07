@@ -7,7 +7,6 @@ struct RootView: View {
     let theme = Theme.shared
     @State private var viewModel = PlanViewModel()
     @State private var showSplash = true
-    @State private var lang = LocalizationManager.shared
 
     var body: some View {
         ZStack {

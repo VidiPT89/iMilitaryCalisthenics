@@ -57,7 +57,7 @@ enum PlanEngine {
         // warm-up (and cool-down, below) was identical on every single day
         // of every week, and the catalog's remaining entries were dead code.
         let warmupExercises = pick(from: ExerciseCatalog.warmup, splitIndex: splitIndex, weekIndex: weekIndex, count: 3)
-        let warmupBlock = block(.warmup, from: warmupExercises, count: warmupExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 15)
+        let warmupBlock = block(.warmup, from: warmupExercises, intensity: intensity, scale: scale, rest: 15)
 
         let hasCircuit = includeCircuit(for: profile.goal, label: label)
         let budget = SessionBudget(sessionMinutes: profile.sessionMinutes, hasCircuit: hasCircuit)
@@ -76,7 +76,7 @@ enum PlanEngine {
         let strengthRest = profile.goal == .strengthMass ? 75 : 45
         let strengthCount = exerciseCount(pool: strengthPool, budgetSeconds: budget.strengthSeconds, sets: 4, restSeconds: strengthRest, intensity: intensity, scale: scale)
         let strengthExercises = pick(from: strengthPool, splitIndex: splitIndex, weekIndex: weekIndex, count: strengthCount)
-        let strengthBlock = block(.strength, from: strengthExercises, count: strengthExercises.count, profile: profile, intensity: intensity, scale: scale, rest: strengthRest)
+        let strengthBlock = block(.strength, from: strengthExercises, intensity: intensity, scale: scale, rest: strengthRest)
 
         var blocks = [warmupBlock, strengthBlock]
 
@@ -91,7 +91,7 @@ enum PlanEngine {
             let circuitRest = profile.goal == .fatLoss ? 30 : 40
             let circuitCount = exerciseCount(pool: circuitPool, budgetSeconds: budget.circuitSeconds, sets: 3, restSeconds: circuitRest, intensity: intensity, scale: scale)
             let circuitExercises = pick(from: circuitPool, splitIndex: splitIndex, weekIndex: weekIndex, count: circuitCount)
-            blocks.append(block(.circuit, from: circuitExercises, count: circuitExercises.count, profile: profile, intensity: intensity, scale: scale, rest: circuitRest))
+            blocks.append(block(.circuit, from: circuitExercises, intensity: intensity, scale: scale, rest: circuitRest))
         }
 
         var corePool = profile.goal == .mobility ? ExerciseCatalog.mobility : ExerciseCatalog.core
@@ -118,10 +118,10 @@ enum PlanEngine {
         }
         let coreCount = exerciseCount(pool: corePool, budgetSeconds: budget.coreSeconds, sets: 3, restSeconds: 20, intensity: intensity, scale: scale)
         let coreExercises = pick(from: corePool, splitIndex: splitIndex, weekIndex: weekIndex, count: coreCount)
-        blocks.append(block(.core, from: coreExercises, count: coreExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 20))
+        blocks.append(block(.core, from: coreExercises, intensity: intensity, scale: scale, rest: 20))
 
         let cooldownExercises = pick(from: ExerciseCatalog.cooldown, splitIndex: splitIndex, weekIndex: weekIndex, count: 3)
-        blocks.append(block(.cooldown, from: cooldownExercises, count: cooldownExercises.count, profile: profile, intensity: intensity, scale: scale, rest: 10))
+        blocks.append(block(.cooldown, from: cooldownExercises, intensity: intensity, scale: scale, rest: 10))
 
         return DailyWorkout(dayLabel: label, blocks: blocks)
     }
@@ -224,8 +224,8 @@ enum PlanEngine {
         return Array(rotated.prefix(count))
     }
 
-    private static func block(_ kind: BlockKind, from catalog: [CatalogExercise], count: Int, profile: UserProfile, intensity: Double, scale: Double, rest: Int) -> WorkoutBlock {
-        let exercises = catalog.prefix(count).map { entry -> PlannedExercise in
+    private static func block(_ kind: BlockKind, from catalog: [CatalogExercise], intensity: Double, scale: Double, rest: Int) -> WorkoutBlock {
+        let exercises = catalog.map { entry -> PlannedExercise in
             let sets = kind == .warmup || kind == .cooldown ? 1 : (kind == .strength ? 4 : 3)
             var reps: Int? = nil
             var seconds: Int? = nil

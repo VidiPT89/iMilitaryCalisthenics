@@ -4,13 +4,12 @@ import Observation
 /// One step of a guided workout session: either doing a set of an exercise,
 /// or resting before the next one. See docs/plan-engine-spec.md
 /// "Guided workout session (timer)".
-struct WorkoutStep: Identifiable {
+struct WorkoutStep {
     enum Kind {
         case work(PlannedExercise)
         case rest(afterExercise: PlannedExercise)
     }
 
-    let id = UUID()
     let blockKind: BlockKind
     let kind: Kind
     let setIndex: Int
@@ -18,6 +17,7 @@ struct WorkoutStep: Identifiable {
 }
 
 @Observable
+@MainActor
 final class WorkoutSessionViewModel {
     private(set) var steps: [WorkoutStep]
     private(set) var currentIndex = 0
@@ -98,12 +98,12 @@ final class WorkoutSessionViewModel {
 
     func skipRest() { advance() }
 
-    func skipExercise() { advance() }
-
     func togglePause() { isPaused.toggle() }
 
     private func advance() {
         timerTask?.cancel()
+        guard !isFinished else { return }
+        isPaused = false
         currentIndex += 1
         startCurrentStep()
     }

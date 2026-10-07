@@ -240,10 +240,11 @@ weight:
 - Without one (e.g. `mobility` goal, or `strengthMass` on non-conditioning
   days): strength 65%, core 35%.
 
-Each variable block picks the largest exercise count (using the same
-rotation/`pick` selection already used for exercise choice) whose estimated
-total time does not exceed its sub-budget, clamped to a minimum of 1
-exercise and a maximum of the available pool size for that block.
+Each variable block divides its sub-budget by the pool’s average estimated
+exercise duration and rounds down, clamped to a minimum of 1 exercise and
+a maximum of the available pool size. Selection then uses the usual
+rotation/`pick`. This average does not guarantee that the selected exercises
+fit the budget exactly, especially with the minimum of one per block.
 
 ## Weight tracking & recalibration
 
@@ -251,20 +252,16 @@ The user's weight is not a one-time onboarding value — it is logged over
 time as a history of `(date, weightKg)` entries, kept alongside the
 profile (not overwriting it in place). Whenever a new entry is logged:
 
-1. The active profile's `weightKg` is updated to the new value.
-2. The plan is regenerated from scratch through the same `Calibration`
-   function above, using the *current* `weightKg` together with the
-   profile's unchanged `heightCm`, `age`, `level` and `goal` — so the
-   `bmiMultiplier` (and therefore volume/intensity) tracks the user's
-   real bodyweight over the course of their training instead of staying
-   frozen at whatever value was entered during onboarding.
-3. Per-exercise completion state resets (a new plan invalidates old
-   week/day/exercise keys), and the week/day selection resets to the
-   start of the new plan.
-4. Both apps show a lightweight trend view (hand-drawn line/sparkline,
-   not a charting library) of the weight history, and a simple "log
-   weight" form (weight + date, defaulting to today) reachable from
-   Settings.
+1. Entries are ordered by measurement date. An older reading does not
+   replace the active weight or reset progress.
+2. A new latest reading recalibrates the plan only if its weight differs
+   from the active profile. Other profile settings remain unchanged.
+3. Recalibration clears completion and its acknowledgement. iOS also
+   returns the selected week/day to the start; the reset persists on reload.
+4. Deleting the latest reading uses the next latest weight. Deleting an
+   older reading, recording the same weight or leaving an empty history
+   does not reset the plan.
+5. Inputs are validated before persistence (30–250 kg, no future dates).
 
 This lets the same goal (fat loss, strength/mass, military endurance,
 mobility) stay selected while the plan's difficulty adapts automatically
@@ -313,8 +310,10 @@ exercise, set by set:
   the user taps to advance to rest.
 - **Rest**: a countdown of `restSeconds` between sets/exercises, with a
   "Skip rest" button.
-- Controls: pause/resume, skip exercise, exit (in-view confirmation state,
-  not a native OS alert/dialog, to avoid blocking the countdown loop).
+- Controls: pause/resume, skip rest and exit confirmation. Timers pause
+  on exit confirmation and when the app becomes inactive. Advancing to the
+  next step clears the previous pause. Android retains the current step and
+  remaining seconds through activity recreation.
 - Finishing the last block marks the day complete using each platform's
   existing completion mechanism (iOS: `completedExerciseIDs` per exercise;
   Android: `DailyWorkout.completed` per day) — no new completion model.

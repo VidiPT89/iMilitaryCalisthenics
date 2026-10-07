@@ -122,6 +122,83 @@ final class PlanEngineTests: XCTestCase {
         XCTAssertEqual(viewModel.profile?.weightKg, 85, "profile should revert to the new most-recent entry")
     }
 
+    func testHistoricalAndUnchangedWeightPreserveProgress() throws {
+        let container = try ModelContainer(for: PersistedProfile.self, WeightEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = ModelContext(container)
+        let model = PlanViewModel()
+        model.load(context: context)
+        model.save(profile: makeProfile())
+        model.logWeight(85, on: Date(timeIntervalSince1970: 20))
+        model.toggleCompleted("progress-marker")
+        model.acknowledgePlanComplete()
+        model.logWeight(70, on: Date(timeIntervalSince1970: 10))
+        model.logWeight(85, on: Date(timeIntervalSince1970: 30))
+        XCTAssertEqual(model.profile?.weightKg, 85)
+        XCTAssertEqual(model.completedExerciseIDs, ["progress-marker"])
+        XCTAssertTrue(model.planCompletionAcknowledged)
+        let reloaded = PlanViewModel()
+        reloaded.load(context: context)
+        XCTAssertEqual(reloaded.completedExerciseIDs, model.completedExerciseIDs)
+        XCTAssertEqual(reloaded.weightHistory.count, 3)
+    }
+
+    func testWeightDeletionResetsProgressInMemoryAndStorage() throws {
+        let container = try ModelContainer(for: PersistedProfile.self, WeightEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = ModelContext(container)
+        let model = PlanViewModel()
+        model.load(context: context)
+        model.save(profile: makeProfile())
+        model.logWeight(85, on: Date(timeIntervalSince1970: 10))
+        model.logWeight(90, on: Date(timeIntervalSince1970: 20))
+        model.toggleCompleted("progress-marker")
+        model.acknowledgePlanComplete()
+        model.selectedWeekIndex = 2
+        model.selectedDayIndex = 1
+        model.deleteWeightEntry(try XCTUnwrap(model.weightHistory.last))
+        XCTAssertEqual(model.profile?.weightKg, 85)
+        XCTAssertTrue(model.completedExerciseIDs.isEmpty)
+        XCTAssertFalse(model.planCompletionAcknowledged)
+        XCTAssertEqual(model.selectedWeekIndex, 0)
+        XCTAssertEqual(model.selectedDayIndex, 0)
+        let reloaded = PlanViewModel()
+        reloaded.load(context: context)
+        XCTAssertEqual(reloaded.profile, model.profile)
+        XCTAssertEqual(reloaded.completedExerciseIDs, model.completedExerciseIDs)
+        XCTAssertFalse(reloaded.planCompletionAcknowledged)
+    }
+
+    func testInvalidWeightIsNotStored() throws {
+        let container = try ModelContainer(for: PersistedProfile.self, WeightEntry.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let model = PlanViewModel()
+        model.load(context: ModelContext(container))
+        model.save(profile: makeProfile())
+        for weight in [Double.nan, Double.infinity, 29, 251] { model.logWeight(weight) }
+        model.logWeight(80, on: Date.now.addingTimeInterval(3600))
+        XCTAssertTrue(model.weightHistory.isEmpty)
+        XCTAssertEqual(model.profile?.weightKg, 78)
+    }
+
+    @MainActor
+    func testSkippingPausedRestResumesNextSet() {
+        let exercise = PlannedExercise(name: "test", sets: 2, reps: 10, seconds: nil, restSeconds: 30)
+        let day = DailyWorkout(dayLabel: "test", blocks: [WorkoutBlock(kind: .strength, exercises: [exercise])])
+        let model = WorkoutSessionViewModel(day: day)
+        defer { model.stop() }
+        model.markDone()
+        model.togglePause()
+        model.skipRest()
+        XCTAssertFalse(model.isPaused)
+        XCTAssertEqual(model.currentStep?.setIndex, 1)
+        model.markDone()
+        XCTAssertTrue(model.isFinished)
+        let finalIndex = model.currentIndex
+        model.markDone()
+        XCTAssertEqual(model.currentIndex, finalIndex)
+    }
+
     func testStrengthMassGoalUsesLongerRestThanFatLoss() {
         // strengthMass favors fewer, heavier movements with more rest between
         // sets rather than more exercises (docs/plan-engine-spec.md "Blocks").

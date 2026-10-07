@@ -7,6 +7,7 @@ import SwiftUI
 struct WorkoutSessionView: View {
     let onFinish: () -> Void
     @State private var viewModel: WorkoutSessionViewModel
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @State private var confirmingExit = false
     let theme = Theme.shared
@@ -26,6 +27,7 @@ struct WorkoutSessionView: View {
             Spacer()
             if let step = viewModel.currentStep {
                 controls(for: step)
+                    .disabled(confirmingExit)
             }
         }
         .padding(24)
@@ -35,6 +37,12 @@ struct WorkoutSessionView: View {
             viewModel.stop()
             onFinish()
             dismiss()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { viewModel.isPaused = true }
+        }
+        .onChange(of: confirmingExit) { _, confirming in
+            if confirming { viewModel.isPaused = true }
         }
         .onDisappear { viewModel.stop() }
     }

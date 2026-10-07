@@ -34,44 +34,40 @@ final class PlanViewModel {
         weightHistory = (try? context.fetch(descriptor)) ?? []
     }
 
-    /// Logs a new bodyweight measurement, updates the active profile's
-    /// current weight and regenerates the plan so future weeks reflect the
-    /// new weight, level and goal — without forcing the user back through
-    /// onboarding. See docs/plan-engine-spec.md "Weight recalibration".
+    /// Historical readings are stored without replacing a newer measurement.
     func logWeight(_ weightKg: Double, on date: Date = .now) {
-        guard let context, var profile else { return }
-        let entry = WeightEntry(date: date, weightKg: weightKg)
-        context.insert(entry)
-
-        profile.weightKg = weightKg
-        self.profile = profile
-        storedProfile?.update(from: profile)
-        completedExerciseIDs = []
-        planCompletionAcknowledged = false
-        selectedWeekIndex = 0
-        selectedDayIndex = 0
+        guard let context, profile != nil, (30...250).contains(weightKg),
+              date.timeIntervalSince1970.isFinite, date <= .now else { return }
+        let changesCurrentWeight = weightHistory.last.map { date >= $0.date } ?? true
+        if let existing = weightHistory.first(where: { $0.date == date }) {
+            existing.weightKg = weightKg
+        } else {
+            context.insert(WeightEntry(date: date, weightKg: weightKg))
+        }
+        if changesCurrentWeight { recalibrateWeight(weightKg) }
         try? context.save()
-
-        plan = PlanEngine.generate(for: profile)
         reloadWeightHistory()
     }
 
-    /// Removes a logged weight entry. If it was the most recent one, the
-    /// active profile's weight (and the generated plan) reverts to the
-    /// new most-recent entry, or is left unchanged if no entries remain.
+    /// Only deleting the latest reading can change the active weight.
     func deleteWeightEntry(_ entry: WeightEntry) {
         guard let context else { return }
         let wasMostRecent = weightHistory.last === entry
         context.delete(entry)
         try? context.save()
         reloadWeightHistory()
+        if wasMostRecent, let newest = weightHistory.last {
+            recalibrateWeight(newest.weightKg)
+            try? context.save()
+        }
+    }
 
-        guard wasMostRecent, var profile, let newest = weightHistory.last else { return }
-        profile.weightKg = newest.weightKg
+    private func recalibrateWeight(_ weightKg: Double) {
+        guard var profile, profile.weightKg != weightKg else { return }
+        profile.weightKg = weightKg
         self.profile = profile
         storedProfile?.update(from: profile)
-        try? context.save()
-        plan = PlanEngine.generate(for: profile)
+        regeneratePlan()
     }
 
     /// Re-runs the plan engine against the current profile without
@@ -141,7 +137,7 @@ final class PlanViewModel {
     }
 
     func save(profile: UserProfile) {
-        guard let context else { return }
+        guard let context, profile.isValid else { return }
         self.profile = profile
         selectedWeekIndex = 0
         selectedDayIndex = 0

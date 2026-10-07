@@ -7,14 +7,13 @@ struct CatalogExercise {
     let baseSeconds: Int?
     let minLevel: FitnessLevel
     let skipOverForty: Bool
-    let requires: Equipment?
     /// Movement pattern for `.strength` exercises, used to filter selection
     /// by the day's own focus (upper/lower/push/pull). `nil` for exercises
     /// outside the strength block, where it doesn't apply.
     let pattern: MovementPattern?
 
     init(name: String, block: BlockKind, baseReps: Int? = nil, baseSeconds: Int? = nil,
-         minLevel: FitnessLevel = .beginner, skipOverForty: Bool = false, requires: Equipment? = nil,
+         minLevel: FitnessLevel = .beginner, skipOverForty: Bool = false,
          pattern: MovementPattern? = nil) {
         self.name = name
         self.block = block
@@ -22,7 +21,6 @@ struct CatalogExercise {
         self.baseSeconds = baseSeconds
         self.minLevel = minLevel
         self.skipOverForty = skipOverForty
-        self.requires = requires
         self.pattern = pattern
     }
 }
@@ -53,15 +51,15 @@ enum ExerciseCatalog {
     ]
 
     static let strengthPullBar: [CatalogExercise] = [
-        CatalogExercise(name: "exercise.pullUps", block: .strength, baseReps: 6, minLevel: .intermediate, requires: .pullUpBar, pattern: .pull),
-        CatalogExercise(name: "exercise.chinUps", block: .strength, baseReps: 6, requires: .pullUpBar, pattern: .pull),
-        CatalogExercise(name: "exercise.negativePullUps", block: .strength, baseReps: 5, requires: .pullUpBar, pattern: .pull),
-        CatalogExercise(name: "exercise.hangingLegRaises", block: .core, baseReps: 10, minLevel: .intermediate, requires: .pullUpBar),
+        CatalogExercise(name: "exercise.pullUps", block: .strength, baseReps: 6, minLevel: .intermediate, pattern: .pull),
+        CatalogExercise(name: "exercise.chinUps", block: .strength, baseReps: 6, pattern: .pull),
+        CatalogExercise(name: "exercise.negativePullUps", block: .strength, baseReps: 5, pattern: .pull),
+        CatalogExercise(name: "exercise.hangingLegRaises", block: .core, baseReps: 10, minLevel: .intermediate),
     ]
 
     static let strengthParallettes: [CatalogExercise] = [
-        CatalogExercise(name: "exercise.dips", block: .strength, baseReps: 10, requires: .parallettes, pattern: .push),
-        CatalogExercise(name: "exercise.lSit", block: .core, baseSeconds: 15, minLevel: .advanced, requires: .parallettes),
+        CatalogExercise(name: "exercise.dips", block: .strength, baseReps: 10, pattern: .push),
+        CatalogExercise(name: "exercise.lSit", block: .core, baseSeconds: 15, minLevel: .advanced),
     ]
 
     /// Goal-specific circuit pools (used only for goals where `includeCircuit`
