@@ -13,6 +13,10 @@ enum Translations {
         "exercise.pending": [.pt: "Por concluir", .en: "Not completed"],
         "session.progress": [.pt: "Progresso da sessão", .en: "Session progress"],
 
+        "storage.title": [.pt: "Não foi possível aceder aos dados", .en: "Could not access your data"],
+        "storage.readError": [.pt: "Não conseguimos ler os dados guardados. Não serão substituídos. Tenta novamente.", .en: "We could not read your saved data. It will not be replaced. Try again."],
+        "storage.saveError": [.pt: "Não foi possível guardar esta alteração. Os dados anteriores foram mantidos. Tenta novamente.", .en: "This change could not be saved. Your previous data was kept. Try again."],
+        "storage.retry": [.pt: "Tentar novamente", .en: "Try again"],
         // App
         "app.name": [.pt: "Calistenia Militar", .en: "Military Calisthenics"],
         "app.tagline": [.pt: "O teu plano de treino, à medida.", .en: "Your training plan, tailored to you."],

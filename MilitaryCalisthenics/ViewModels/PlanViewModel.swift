@@ -4,170 +4,159 @@ import Observation
 
 @Observable
 final class PlanViewModel {
-    var profile: UserProfile?
-    var plan: WeeklyPlan?
-    var selectedWeekIndex: Int = 0
-    var selectedDayIndex: Int = 0
-    var completedExerciseIDs: Set<String> = []
-    var weightHistory: [WeightEntry] = []
-    var planCompletionAcknowledged: Bool = false
+    private(set) var profile: UserProfile?
+    private(set) var plan: WeeklyPlan?
+    var selectedWeekIndex = 0
+    var selectedDayIndex = 0
+    private(set) var completedExerciseIDs: Set<String> = []
+    private(set) var weightHistory: [WeightEntry] = []
+    private(set) var planCompletionAcknowledged = false
+    private(set) var hasLoaded = false
+    var storageErrorKey: String?
+
+    private let saveChanges: (ModelContext) throws -> Void
+
+    init(saveChanges: @escaping (ModelContext) throws -> Void = { try $0.save() }) {
+        self.saveChanges = saveChanges
+    }
 
     private var context: ModelContext?
     private var storedProfile: PersistedProfile?
+    private enum StorageError: Error { case invalidData }
 
     func load(context: ModelContext) {
         self.context = context
-        let descriptor = FetchDescriptor<PersistedProfile>()
-        if let existing = try? context.fetch(descriptor).first {
-            storedProfile = existing
-            profile = existing.profile
-            completedExerciseIDs = Set(existing.completedExerciseIDs)
-            planCompletionAcknowledged = existing.planCompletionAcknowledged
-            plan = PlanEngine.generate(for: existing.profile)
+        // All writes below have explicit save/rollback boundaries.
+        context.autosaveEnabled = false
+        do {
+            try refresh()
+            storageErrorKey = nil
+        } catch {
+            hasLoaded = false
+            storageErrorKey = "storage.readError"
         }
-        reloadWeightHistory()
     }
 
-    private func reloadWeightHistory() {
+    private func refresh() throws {
         guard let context else { return }
-        let descriptor = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\.date)])
-        weightHistory = (try? context.fetch(descriptor)) ?? []
-    }
-
-    /// Historical readings are stored without replacing a newer measurement.
-    func logWeight(_ weightKg: Double, on date: Date = .now) {
-        guard let context, profile != nil, (30...250).contains(weightKg),
-              date.timeIntervalSince1970.isFinite, date <= .now else { return }
-        let changesCurrentWeight = weightHistory.last.map { date >= $0.date } ?? true
-        if let existing = weightHistory.first(where: { $0.date == date }) {
-            existing.weightKg = weightKg
-        } else {
-            context.insert(WeightEntry(date: date, weightKg: weightKg))
+        let stored = try context.fetch(FetchDescriptor<PersistedProfile>()).first
+        let weights = try context.fetch(FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\.date)]))
+        guard stored?.profile.isValid != false,
+              weights.allSatisfy({ (30...250).contains($0.weightKg) && $0.date.timeIntervalSince1970.isFinite }) else {
+            throw StorageError.invalidData
         }
-        if changesCurrentWeight { recalibrateWeight(weightKg) }
-        try? context.save()
-        reloadWeightHistory()
+        let updatedProfile = stored?.profile
+        if profile != updatedProfile || plan == nil {
+            plan = updatedProfile.map { PlanEngine.generate(for: $0) }
+        }
+        storedProfile = stored
+        profile = updatedProfile
+        completedExerciseIDs = Set(stored?.completedExerciseIDs ?? [])
+        planCompletionAcknowledged = stored?.planCompletionAcknowledged ?? false
+        weightHistory = weights
+        hasLoaded = true
     }
 
-    /// Only deleting the latest reading can change the active weight.
-    func deleteWeightEntry(_ entry: WeightEntry) {
-        guard let context else { return }
-        let wasMostRecent = weightHistory.last === entry
-        context.delete(entry)
-        try? context.save()
-        reloadWeightHistory()
-        if wasMostRecent, let newest = weightHistory.last {
-            recalibrateWeight(newest.weightKg)
-            try? context.save()
+    @discardableResult
+    private func commit(resetSelection: Bool = false, _ change: () -> Void) -> Bool {
+        guard let context, hasLoaded else { return false }
+        change()
+        do {
+            try saveChanges(context)
+        } catch {
+            context.rollback()
+            storageErrorKey = "storage.saveError"
+            return false
+        }
+        do {
+            try refresh()
+            if resetSelection { selectedWeekIndex = 0; selectedDayIndex = 0 }
+            storageErrorKey = nil
+            return true
+        } catch {
+            hasLoaded = false
+            storageErrorKey = "storage.readError"
+            return false
         }
     }
 
-    private func recalibrateWeight(_ weightKg: Double) {
-        guard var profile, profile.weightKg != weightKg else { return }
-        profile.weightKg = weightKg
-        self.profile = profile
-        storedProfile?.update(from: profile)
-        regeneratePlan()
-    }
-
-    /// Re-runs the plan engine against the current profile without
-    /// changing any inputs and resets progress back to week 1 — a lighter
-    /// alternative to full re-onboarding for restarting the current plan.
-    /// `PlanEngine` is deterministic (same profile -> same plan), so this
-    /// intentionally does not produce a randomized variation.
-    func regeneratePlan() {
-        guard let profile else { return }
-        completedExerciseIDs = []
-        storedProfile?.completedExerciseIDs = []
-        planCompletionAcknowledged = false
-        storedProfile?.planCompletionAcknowledged = false
-        selectedWeekIndex = 0
-        selectedDayIndex = 0
-        try? context?.save()
-        plan = PlanEngine.generate(for: profile)
-    }
-
-    /// Finishing only the final week does not complete the earlier weeks.
-    var isPlanComplete: Bool {
-        plan?.isComplete(completedExerciseIDs: completedExerciseIDs) ?? false
-    }
-
-    /// Whether the plan-completion prompt should be shown: the plan is
-    /// complete and the user hasn't already dismissed the prompt for it.
-    /// Unlike `isPlanComplete`, this stays false across tab switches/app
-    /// relaunches once acknowledged, so it doesn't nag on every visit.
-    var shouldShowPlanComplete: Bool { isPlanComplete && !planCompletionAcknowledged }
-
-    /// Records that the user has seen the plan-completion prompt for the
-    /// current plan, so it won't reappear until the plan changes again.
-    func acknowledgePlanComplete() {
-        planCompletionAcknowledged = true
-        storedProfile?.planCompletionAcknowledged = true
-        try? context?.save()
-    }
-
-    /// The level the user would move to via `levelUp()`, or `nil` if
-    /// already at the highest level (`advanced`).
-    var nextLevel: FitnessLevel? { profile?.level.next }
-
-    /// Moves the profile to the next `FitnessLevel` and regenerates the
-    /// plan for it, without sending the user back through onboarding.
-    /// No-op if already at the highest level.
-    func levelUp() {
-        guard var profile, let next = profile.level.next else { return }
-        profile.level = next
-        self.profile = profile
-        storedProfile?.update(from: profile)
-        completedExerciseIDs = []
-        storedProfile?.completedExerciseIDs = []
-        planCompletionAcknowledged = false
-        storedProfile?.planCompletionAcknowledged = false
-        selectedWeekIndex = 0
-        selectedDayIndex = 0
-        try? context?.save()
-        plan = PlanEngine.generate(for: profile)
-    }
-
-    func save(profile: UserProfile) {
-        guard let context, profile.isValid else { return }
-        guard self.profile != profile else { return }
-        self.profile = profile
-        selectedWeekIndex = 0
-        selectedDayIndex = 0
-        completedExerciseIDs = []
-        planCompletionAcknowledged = false
-        if let storedProfile {
-            storedProfile.update(from: profile)
-        } else {
-            let new = PersistedProfile(profile: profile)
-            context.insert(new)
-            storedProfile = new
-        }
-        try? context.save()
-        plan = PlanEngine.generate(for: profile)
-    }
-
-    /// Marks every exercise of `day` as done — called when a guided
-    /// `WorkoutSessionView` finishes its last step. See
-    /// docs/plan-engine-spec.md "Guided workout session (timer)".
-    func markDayComplete(_ day: DailyWorkout) {
-        for block in day.blocks {
-            for exercise in block.exercises {
-                completedExerciseIDs.insert(exerciseKey(day: day, exercise: exercise))
+    @discardableResult
+    func logWeight(_ weightKg: Double, on date: Date = .now) -> Bool {
+        guard let context, let profile, (30...250).contains(weightKg),
+              date.timeIntervalSince1970.isFinite, date <= .now else { return false }
+        let isLatest = weightHistory.last.map { date >= $0.date } ?? true
+        let recalibrates = isLatest && profile.weightKg != weightKg
+        return commit(resetSelection: recalibrates) {
+            if let existing = weightHistory.first(where: { $0.date == date }) {
+                existing.weightKg = weightKg
+            } else {
+                context.insert(WeightEntry(date: date, weightKg: weightKg))
+            }
+            if recalibrates {
+                var updated = profile
+                updated.weightKg = weightKg
+                storedProfile?.update(from: updated)
             }
         }
-        storedProfile?.completedExerciseIDs = Array(completedExerciseIDs)
-        try? context?.save()
+    }
+
+    func deleteWeightEntry(_ entry: WeightEntry) {
+        guard let context, let profile else { return }
+        let remaining = weightHistory.filter { $0 !== entry }
+        let isLatest = weightHistory.last === entry
+        let weight = remaining.last?.weightKg
+        let recalibrates = isLatest && weight != nil && weight != profile.weightKg
+        commit(resetSelection: recalibrates) {
+            context.delete(entry)
+            if recalibrates, let weight {
+                var updated = profile
+                updated.weightKg = weight
+                storedProfile?.update(from: updated)
+            }
+        }
+    }
+
+    func regeneratePlan() {
+        guard let storedProfile else { return }
+        commit(resetSelection: true) {
+            storedProfile.completedExerciseIDs = []
+            storedProfile.planCompletionAcknowledged = false
+        }
+    }
+
+    var isPlanComplete: Bool { plan?.isComplete(completedExerciseIDs: completedExerciseIDs) ?? false }
+    var shouldShowPlanComplete: Bool { isPlanComplete && !planCompletionAcknowledged }
+    var nextLevel: FitnessLevel? { profile?.level.next }
+
+    func acknowledgePlanComplete() {
+        commit { storedProfile?.planCompletionAcknowledged = true }
+    }
+
+    func levelUp() {
+        guard var updated = profile, let next = updated.level.next else { return }
+        updated.level = next
+        save(profile: updated)
+    }
+
+    @discardableResult
+    func save(profile: UserProfile) -> Bool {
+        guard let context, hasLoaded, profile.isValid else { return false }
+        guard self.profile != profile else { return true }
+        return commit(resetSelection: true) {
+            if let storedProfile { storedProfile.update(from: profile) }
+            else { context.insert(PersistedProfile(profile: profile)) }
+        }
+    }
+
+    func markDayComplete(_ day: DailyWorkout) {
+        let keys = day.blocks.flatMap(\.exercises).map { exerciseKey(day: day, exercise: $0) }
+        commit { storedProfile?.completedExerciseIDs = Array(completedExerciseIDs.union(keys)) }
     }
 
     func toggleCompleted(_ exerciseID: String) {
-        if completedExerciseIDs.contains(exerciseID) {
-            completedExerciseIDs.remove(exerciseID)
-        } else {
-            completedExerciseIDs.insert(exerciseID)
-        }
-        storedProfile?.completedExerciseIDs = Array(completedExerciseIDs)
-        try? context?.save()
+        var updated = completedExerciseIDs
+        if !updated.insert(exerciseID).inserted { updated.remove(exerciseID) }
+        commit { storedProfile?.completedExerciseIDs = Array(updated) }
     }
 
     var currentWeek: WeekPlan? {
@@ -182,10 +171,10 @@ final class PlanViewModel {
 
     var dayCompletionFraction: Double {
         guard let day = currentDay else { return 0 }
-        let all = day.blocks.flatMap { $0.exercises }
-        guard !all.isEmpty else { return 0 }
-        let done = all.filter { completedExerciseIDs.contains(exerciseKey(day: day, exercise: $0)) }.count
-        return Double(done) / Double(all.count)
+        let exercises = day.blocks.flatMap(\.exercises)
+        guard !exercises.isEmpty else { return 0 }
+        let done = exercises.filter { completedExerciseIDs.contains(exerciseKey(day: day, exercise: $0)) }.count
+        return Double(done) / Double(exercises.count)
     }
 
     func exerciseKey(day: DailyWorkout, exercise: PlannedExercise) -> String {

@@ -6,15 +6,16 @@ struct RootView: View {
     @Environment(\.colorScheme) private var systemColorScheme
     let theme = Theme.shared
     @State private var viewModel = PlanViewModel()
-    @State private var showSplash = true
 
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
 
-            if showSplash {
+            if !viewModel.hasLoaded && viewModel.storageErrorKey == nil {
                 SplashView()
                     .transition(.opacity.combined(with: .scale(scale: 1.04)))
+            } else if !viewModel.hasLoaded {
+                StorageUnavailableView { viewModel.load(context: modelContext) }
             } else if viewModel.profile == nil {
                 OnboardingView(viewModel: viewModel)
                     .transition(.asymmetric(
@@ -30,9 +31,6 @@ struct RootView: View {
         .onAppear {
             viewModel.load(context: modelContext)
             theme.systemIsDark = systemColorScheme == .dark
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
-                withAnimation(theme.springAnimation) { showSplash = false }
-            }
         }
         .onChange(of: viewModel.profile?.daysPerWeek) { _, days in
             if let days { Task { await ReminderManager.shared.reschedule(daysPerWeek: days) } }

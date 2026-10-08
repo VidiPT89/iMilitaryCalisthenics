@@ -30,6 +30,12 @@ struct WeightProgressView: View {
                 }
             }
         }
+        .alert(t("storage.title"), isPresented: Binding(
+            get: { viewModel.storageErrorKey != nil },
+            set: { if !$0 { viewModel.storageErrorKey = nil } }
+        )) {
+            Button(t("common.close")) { viewModel.storageErrorKey = nil }
+        } message: { Text(t(viewModel.storageErrorKey ?? "storage.saveError")) }
         .onAppear {
             weight = viewModel.profile?.weightKg ?? 75
         }
@@ -158,10 +164,7 @@ struct WeightProgressView: View {
     }
 
     private func logWeight() {
-        withAnimation(theme.springAnimation) {
-            viewModel.logWeight(weight, on: date)
-        }
-        dismiss()
+        if viewModel.logWeight(weight, on: date) { dismiss() }
     }
 }
 

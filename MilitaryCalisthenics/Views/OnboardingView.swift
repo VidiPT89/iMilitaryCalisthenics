@@ -71,6 +71,12 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity)
         }
         .background(theme.background)
+        .alert(t("storage.title"), isPresented: Binding(
+            get: { viewModel.storageErrorKey != nil },
+            set: { if !$0 { viewModel.storageErrorKey = nil } }
+        )) {
+            Button(t("common.close")) { viewModel.storageErrorKey = nil }
+        } message: { Text(t(viewModel.storageErrorKey ?? "storage.saveError")) }
         .onAppear {
             withAnimation(theme.springAnimation.delay(0.1)) { appear = true }
         }
@@ -210,8 +216,7 @@ struct OnboardingView: View {
         }
 
         withAnimation { showError = false }
-        viewModel.save(profile: profile)
-        onSaved()
+        if viewModel.save(profile: profile) { onSaved() }
     }
 }
 

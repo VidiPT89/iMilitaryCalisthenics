@@ -337,3 +337,15 @@ final rest. Minutes round up. This estimate does not change generation.
 Editing a profile starts with its current values and can be cancelled
 without removing the existing plan. Saving changed inputs or explicitly
 restarting resets completion; saving an unchanged profile preserves it.
+
+## Persistence and recovery
+
+Plan changes, weight history and completion acknowledgement are saved as
+one transaction. Android transforms the latest DataStore snapshot; iOS
+uses an explicit SwiftData save and rolls back on failure. Profile-save navigation and weight-save success messages occur only
+after persistence succeeds. Errors are
+shown in the active screen; a read failure offers retry and never routes
+the user into an empty replacement profile. The store is not deleted or
+recreated to recover from a read error. Marking a workout complete is
+idempotent and preserves week metadata, including deload. Startup waits
+only for data loading, with no forced splash-screen delay.

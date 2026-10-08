@@ -3,20 +3,40 @@ import SwiftData
 
 @main
 struct MilitaryCalisthenicsApp: App {
-    let modelContainer: ModelContainer
+    @State private var modelContainer: ModelContainer? = Self.openStore()
 
-    init() {
-        do {
-            modelContainer = try ModelContainer(for: PersistedProfile.self, WeightEntry.self)
-        } catch {
-            fatalError("Failed to create model container: \(error)")
-        }
+    private static func openStore() -> ModelContainer? {
+        // Do not replace or delete an unreadable database.
+        try? ModelContainer(for: PersistedProfile.self, WeightEntry.self)
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            if let modelContainer {
+                RootView().modelContainer(modelContainer)
+            } else {
+                StorageUnavailableView { modelContainer = Self.openStore() }
+            }
         }
-        .modelContainer(modelContainer)
+    }
+}
+
+struct StorageUnavailableView: View {
+    let retry: () -> Void
+    private let theme = Theme.shared
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "externaldrive.badge.exclamationmark")
+                .font(.largeTitle)
+            Text(t("storage.title")).font(.title2.bold())
+            Text(t("storage.readError")).multilineTextAlignment(.center)
+            Button(t("storage.retry"), action: retry).buttonStyle(.borderedProminent)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .foregroundStyle(theme.text)
+        .background(theme.background)
+        .tint(theme.accent)
     }
 }

@@ -30,6 +30,12 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity)
         }
         .background(theme.background)
+        .alert(t("storage.title"), isPresented: Binding(
+            get: { !showProfileEditor && !showProgress && viewModel.storageErrorKey != nil },
+            set: { if !$0 { viewModel.storageErrorKey = nil } }
+        )) {
+            Button(t("common.close")) { viewModel.storageErrorKey = nil }
+        } message: { Text(t(viewModel.storageErrorKey ?? "storage.saveError")) }
         .alert(t("settings.regeneratePlan"), isPresented: $confirmRestart) {
             Button(t("common.cancel"), role: .cancel) { }
             Button(t("settings.regeneratePlan"), role: .destructive) { viewModel.regeneratePlan() }
