@@ -10,18 +10,19 @@ final class ReminderManager {
     var permissionDenied = false
 
     var isEnabled: Bool {
-        get { UserDefaults.standard.bool(forKey: "reminders.enabled") }
-        set { UserDefaults.standard.set(newValue, forKey: "reminders.enabled") }
+        didSet { UserDefaults.standard.set(isEnabled, forKey: "reminders.enabled") }
     }
-
     var hour: Int {
-        get { UserDefaults.standard.object(forKey: "reminders.hour") as? Int ?? 18 }
-        set { UserDefaults.standard.set(newValue, forKey: "reminders.hour") }
+        didSet { UserDefaults.standard.set(hour, forKey: "reminders.hour") }
+    }
+    var minute: Int {
+        didSet { UserDefaults.standard.set(minute, forKey: "reminders.minute") }
     }
 
-    var minute: Int {
-        get { UserDefaults.standard.object(forKey: "reminders.minute") as? Int ?? 0 }
-        set { UserDefaults.standard.set(newValue, forKey: "reminders.minute") }
+    private init() {
+        isEnabled = UserDefaults.standard.bool(forKey: "reminders.enabled")
+        hour = UserDefaults.standard.object(forKey: "reminders.hour") as? Int ?? 18
+        minute = UserDefaults.standard.object(forKey: "reminders.minute") as? Int ?? 0
     }
 
     private static let weekdaySpread: [Int: [Int]] = [

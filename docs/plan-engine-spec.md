@@ -269,10 +269,10 @@ as the user's weight changes — no need to redo onboarding.
 
 ## Plan completion
 
-A plan is "complete" once every exercise/workout in its **final week** is
-marked done (per-exercise on iOS via `completedExerciseIDs`, per-workout
-on Android via `DailyWorkout.completed`). Neither platform previously
-detected this — the UI simply stayed on the last week with no signal.
+A plan is complete only when every workout in every week is completed.
+An empty plan is never complete. iOS checks the persisted exercise keys
+across all weeks; Android checks every workout's completed flag. Completing
+only the final week must not claim that the full plan has been finished.
 
 Both apps now show a completion prompt at that point, offering the two
 paths the engine already supports without sending the user back through
@@ -326,3 +326,14 @@ exercise, set by set:
   platform's theme file) — no system/dynamic colors.
 - Credits screen: "Developed by David Arsénio Martins", link to
   https://ividi.dev/, link to https://github.com/VidiPT89/.
+
+## Workout overview
+
+The dashboard shows the actual selected workout's exercise count and an
+estimated duration, rather than presenting the requested duration as a
+promise. The estimate follows the guided session: work for every set
+(seconds, or reps × 3 seconds) plus rest after each set, excluding the
+final rest. Minutes round up. This estimate does not change generation.
+Editing a profile starts with its current values and can be cancelled
+without removing the existing plan. Saving changed inputs or explicitly
+restarting resets completion; saving an unchanged profile preserves it.

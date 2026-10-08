@@ -5,15 +5,16 @@ import SwiftUI
 /// lightweight. Used both as a small inline preview in the exercise list
 /// and as a larger illustration in the exercise detail sheet.
 struct ExerciseDemoView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let motion: ExerciseMotionKind
     var lineWidth: CGFloat = 4
     var cycleDuration: Double = 1.6
     let theme = Theme.shared
 
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
             Canvas { context, size in
-                let phase = (timeline.date.timeIntervalSinceReferenceDate
+                let phase = reduceMotion ? 0 : (timeline.date.timeIntervalSinceReferenceDate
                     .truncatingRemainder(dividingBy: cycleDuration)) / cycleDuration
                 let pose = ExerciseMotionPose.pose(for: motion, phase: phase)
                 draw(pose: pose, in: &context, size: size)

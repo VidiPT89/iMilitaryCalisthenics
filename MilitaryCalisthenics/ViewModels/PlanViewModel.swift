@@ -87,17 +87,9 @@ final class PlanViewModel {
         plan = PlanEngine.generate(for: profile)
     }
 
-    /// Whether the user has finished every exercise of the plan's final
-    /// week — the trigger for the plan-completion prompt. Only the last
-    /// week counts (not the whole plan), so an in-progress restart of an
-    /// earlier week doesn't re-trigger it.
+    /// Finishing only the final week does not complete the earlier weeks.
     var isPlanComplete: Bool {
-        guard let plan, let lastWeek = plan.weeks.last else { return false }
-        let allExerciseKeys = lastWeek.days.flatMap { day in
-            day.blocks.flatMap { $0.exercises }.map { exerciseKey(weekIndex: lastWeek.index, day: day, exercise: $0) }
-        }
-        guard !allExerciseKeys.isEmpty else { return false }
-        return allExerciseKeys.allSatisfy { completedExerciseIDs.contains($0) }
+        plan?.isComplete(completedExerciseIDs: completedExerciseIDs) ?? false
     }
 
     /// Whether the plan-completion prompt should be shown: the plan is
@@ -138,6 +130,7 @@ final class PlanViewModel {
 
     func save(profile: UserProfile) {
         guard let context, profile.isValid else { return }
+        guard self.profile != profile else { return }
         self.profile = profile
         selectedWeekIndex = 0
         selectedDayIndex = 0

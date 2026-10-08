@@ -132,3 +132,34 @@ struct WeeklyPlan: Codable, Equatable {
     let weeks: [WeekPlan]
     let generatedFor: UserProfile
 }
+
+
+extension DailyWorkout {
+    var exerciseCount: Int { blocks.reduce(0) { $0 + $1.exercises.count } }
+
+    var estimatedDurationSeconds: Int {
+        let exercises = blocks.flatMap(\.exercises)
+        let total = exercises.reduce(0) { sum, exercise in
+            let work = exercise.seconds ?? (exercise.reps ?? 0) * 3
+            return sum + max(1, exercise.sets) * (work + exercise.restSeconds)
+        }
+        return max(0, total - (exercises.last?.restSeconds ?? 0))
+    }
+
+    var estimatedMinutes: Int { (estimatedDurationSeconds + 59) / 60 }
+}
+
+extension WeeklyPlan {
+    var exerciseCompletionKeys: [String] {
+        weeks.flatMap { week in
+            week.days.flatMap { day in
+                day.blocks.flatMap(\.exercises).map { "\(week.index)-\(day.dayLabel)-\($0.name)" }
+            }
+        }
+    }
+
+    func isComplete(completedExerciseIDs: Set<String>) -> Bool {
+        let keys = exerciseCompletionKeys
+        return !keys.isEmpty && keys.allSatisfy { completedExerciseIDs.contains($0) }
+    }
+}

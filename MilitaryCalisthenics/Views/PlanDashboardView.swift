@@ -34,6 +34,8 @@ struct PlanDashboardView: View {
                 }
             }
             .padding(20)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
         }
         .background(theme.background)
         .animation(theme.springAnimation, value: viewModel.selectedDayIndex)
@@ -54,7 +56,7 @@ struct PlanDashboardView: View {
             }
         }) {
             PlanCompleteSheet(viewModel: viewModel, isPresented: $showingPlanComplete)
-                .presentationDetents([.medium])
+                .presentationDetents([.medium, .large])
         }
         .fullScreenCover(isPresented: $showingSession) {
             if let day = viewModel.currentDay {
@@ -77,7 +79,7 @@ struct PlanDashboardView: View {
             .foregroundStyle(.black)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(theme.accentGradient)
+            .background(theme.buttonGradient)
             .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
         }
         .buttonStyle(PressableButtonStyle())
@@ -110,9 +112,10 @@ struct PlanDashboardView: View {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(theme.accent)
-                        .padding(10)
+                        .frame(width: 44, height: 44)
                         .background(Circle().fill(theme.panel))
                 }
+                .accessibilityLabel(t("export.week"))
             }
         }
     }
@@ -135,10 +138,11 @@ struct PlanDashboardView: View {
                                 .padding(.vertical, 10)
                                 .foregroundStyle(isSelected ? Color.black : theme.textDim)
                                 .background(
-                                    Capsule().fill(isSelected ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel))
+                                    Capsule().fill(isSelected ? AnyShapeStyle(theme.buttonGradient) : AnyShapeStyle(theme.panel))
                                 )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityAddTraits(isSelected ? .isSelected : [])
                     }
                 }
             }
@@ -170,7 +174,8 @@ struct PlanDashboardView: View {
                         Text(t(day.dayLabel))
                             .font(.footnote.weight(.semibold))
                             .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 12)
+                            .frame(minHeight: 44)
                             .foregroundStyle(isSelected ? theme.accent : theme.textFaint)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -195,18 +200,26 @@ struct PlanDashboardView: View {
                     .animation(theme.springAnimation, value: viewModel.dayCompletionFraction)
                 Text("\(Int(viewModel.dayCompletionFraction * 100))%")
                     .font(.caption.bold())
+                    .monospacedDigit()
                     .foregroundStyle(theme.text)
             }
-            .frame(width: 56, height: 56)
+            .frame(width: 64, height: 64)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(t("plan.progress"))
+            .accessibilityValue("\(Int(viewModel.dayCompletionFraction * 100))%")
 
-            if let profile = viewModel.profile {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(String(format: "BMI %.1f", profile.bmi))
-                        .font(.footnote.weight(.semibold))
+            if let day = viewModel.currentDay {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(t(day.dayLabel))
+                        .font(.headline)
                         .foregroundStyle(theme.text)
-                    Text(t("onboarding.level.\(profile.level.rawValue)"))
-                        .font(.caption)
+                    Text("~\(day.estimatedMinutes) min · \(day.exerciseCount) \(t("plan.exercises"))")
+                        .font(.subheadline)
+                        .monospacedDigit()
                         .foregroundStyle(theme.textDim)
+                    Text(t("plan.durationEstimate"))
+                        .font(.caption)
+                        .foregroundStyle(theme.textFaint)
                 }
             }
             Spacer()
@@ -287,7 +300,7 @@ private struct ExerciseRow: View {
             .accessibilityIdentifier("exercise.toggle.\(exercise.name)")
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(t(exercise.name)), \(detailText)")
-            .accessibilityValue(isDone ? t("exercise.markDone") : "")
+            .accessibilityValue(t(isDone ? "exercise.completed" : "exercise.pending"))
             .accessibilityAddTraits(.isButton)
         }
         .sheet(isPresented: $showingDemo) {
@@ -312,7 +325,7 @@ private struct ExerciseRow: View {
     }
 }
 
-/// Presented when the user finishes the final week of their plan. Offers
+/// Presented when the user finishes every week of their plan. Offers
 /// the two paths the plan engine already supports without re-onboarding:
 /// repeating the same level (`regeneratePlan`) or moving to the next one
 /// (`levelUp`). See docs/plan-engine-spec.md "Plan completion".
@@ -322,6 +335,7 @@ private struct PlanCompleteSheet: View {
     let theme = Theme.shared
 
     var body: some View {
+        ScrollView {
         VStack(spacing: 24) {
             VStack(spacing: 8) {
                 Image(systemName: "flag.checkered.circle.fill")
@@ -382,6 +396,7 @@ private struct PlanCompleteSheet: View {
             Spacer(minLength: 0)
         }
         .padding(20)
+        }
         .background(theme.background)
         .interactiveDismissDisabled(false)
     }

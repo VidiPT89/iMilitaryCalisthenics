@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     var viewModel: PlanViewModel
     let theme = Theme.shared
+    var onSaved: () -> Void = {}
 
     @State private var weight: Double = 75
     @State private var height: Double = 175
@@ -16,10 +17,25 @@ struct OnboardingView: View {
     @State private var showError = false
     @State private var appear = false
 
+    init(viewModel: PlanViewModel, initialProfile: UserProfile? = nil, onSaved: @escaping () -> Void = {}) {
+        self.viewModel = viewModel
+        self.onSaved = onSaved
+        let profile = initialProfile ?? .empty
+        _weight = State(initialValue: profile.weightKg)
+        _height = State(initialValue: profile.heightCm)
+        _age = State(initialValue: Double(profile.age))
+        _sex = State(initialValue: profile.sex)
+        _level = State(initialValue: profile.level)
+        _goal = State(initialValue: profile.goal)
+        _daysPerWeek = State(initialValue: profile.daysPerWeek)
+        _equipment = State(initialValue: profile.equipment.union([.bodyweightOnly]))
+        _sessionMinutes = State(initialValue: Double(profile.sessionMinutes))
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                Text(t("onboarding.title"))
+                Text(t(viewModel.profile == nil ? "onboarding.title" : "plan.regenerate"))
                     .font(.largeTitle.bold())
                     .foregroundStyle(theme.text)
                     .padding(.top, 24)
@@ -41,10 +57,18 @@ struct OnboardingView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
+                if viewModel.profile != nil {
+                    Text(t("profile.editWarning"))
+                        .font(.footnote)
+                        .foregroundStyle(theme.textDim)
+                }
+
                 generateButton
                     .padding(.bottom, 40)
             }
             .padding(.horizontal, 20)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
         }
         .background(theme.background)
         .onAppear {
@@ -74,6 +98,8 @@ struct OnboardingView: View {
             }
             Slider(value: value, in: range, step: step)
                 .tint(theme.accent)
+                .accessibilityLabel(title)
+                .accessibilityValue(suffix.isEmpty ? "\(Int(value.wrappedValue))" : "\(Int(value.wrappedValue)) \(suffix)")
         }
         .padding(16)
         .panelBackground()
@@ -94,7 +120,7 @@ struct OnboardingView: View {
                             .frame(width: 44, height: 44)
                             .foregroundStyle(daysPerWeek == day ? Color.black : theme.text)
                             .background(
-                                Circle().fill(daysPerWeek == day ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel))
+                                Circle().fill(daysPerWeek == day ? AnyShapeStyle(theme.buttonGradient) : AnyShapeStyle(theme.panel))
                             )
                             .scaleEffect(daysPerWeek == day ? 1.08 : 1)
                     }
@@ -157,12 +183,12 @@ struct OnboardingView: View {
         Button {
             generate()
         } label: {
-            Text(t("onboarding.generate"))
+            Text(t(viewModel.profile == nil ? "onboarding.generate" : "common.save"))
                 .font(.headline)
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(theme.accentGradient)
+                .background(theme.buttonGradient)
                 .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
                 .shadow(color: theme.accent.opacity(0.35), radius: 14, y: 6)
         }
@@ -185,6 +211,7 @@ struct OnboardingView: View {
 
         withAnimation { showError = false }
         viewModel.save(profile: profile)
+        onSaved()
     }
 }
 

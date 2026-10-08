@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var lang = LocalizationManager.shared
     @State private var reminders = ReminderManager.shared
     @State private var showProgress = false
+    @State private var showProfileEditor = false
+    @State private var confirmRestart = false
 
     var body: some View {
         ScrollView {
@@ -24,8 +26,26 @@ struct SettingsView: View {
                 aboutCard
             }
             .padding(20)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
         }
         .background(theme.background)
+        .alert(t("settings.regeneratePlan"), isPresented: $confirmRestart) {
+            Button(t("common.cancel"), role: .cancel) { }
+            Button(t("settings.regeneratePlan"), role: .destructive) { viewModel.regeneratePlan() }
+        } message: { Text(t("profile.restartWarning")) }
+        .sheet(isPresented: $showProfileEditor) {
+            NavigationStack {
+                OnboardingView(viewModel: viewModel, initialProfile: viewModel.profile) {
+                    showProfileEditor = false
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(t("common.cancel")) { showProfileEditor = false }
+                    }
+                }
+            }
+        }
         .sheet(isPresented: $showProgress) {
             WeightProgressView(viewModel: viewModel)
         }
@@ -68,7 +88,7 @@ struct SettingsView: View {
                             .foregroundStyle(isSelected ? Color.black : theme.textDim)
                             .background(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(isSelected ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel2))
+                                    .fill(isSelected ? AnyShapeStyle(theme.buttonGradient) : AnyShapeStyle(theme.panel2))
                             )
                     }
                     .buttonStyle(.plain)
@@ -98,7 +118,7 @@ struct SettingsView: View {
                             .foregroundStyle(isSelected ? Color.black : theme.textDim)
                             .background(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(isSelected ? AnyShapeStyle(theme.accentGradient) : AnyShapeStyle(theme.panel2))
+                                    .fill(isSelected ? AnyShapeStyle(theme.buttonGradient) : AnyShapeStyle(theme.panel2))
                             )
                     }
                     .buttonStyle(.plain)
@@ -116,7 +136,7 @@ struct SettingsView: View {
                     .font(.subheadline)
                     .foregroundStyle(theme.textDim)
                 Spacer()
-                Toggle("", isOn: Binding(
+                Toggle(t("reminders.title"), isOn: Binding(
                     get: { reminders.isEnabled },
                     set: { newValue in
                         reminders.isEnabled = newValue
@@ -171,7 +191,7 @@ struct SettingsView: View {
 
     private var regeneratePlanButton: some View {
         Button {
-            withAnimation(theme.springAnimation) { viewModel.regeneratePlan() }
+            confirmRestart = true
         } label: {
             HStack {
                 Image(systemName: "arrow.triangle.2.circlepath")
@@ -188,7 +208,7 @@ struct SettingsView: View {
 
     private var editProfileButton: some View {
         Button {
-            withAnimation(theme.springAnimation) { viewModel.profile = nil }
+            showProfileEditor = true
         } label: {
             HStack {
                 Image(systemName: "person.crop.circle.badge.exclamationmark")

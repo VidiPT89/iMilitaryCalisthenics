@@ -103,7 +103,7 @@ struct WeightProgressView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .foregroundStyle(Color.black)
-                    .background(theme.accentGradient)
+                    .background(theme.buttonGradient)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(.plain)

@@ -2,6 +2,17 @@ import Foundation
 
 enum Translations {
     static let table: [String: [Lang: String]] = [
+        "common.cancel": [.pt: "Cancelar", .en: "Cancel"],
+        "common.save": [.pt: "Guardar", .en: "Save"],
+        "profile.editWarning": [.pt: "Guardar alterações ao perfil reinicia o progresso do plano. Cancelar mantém tudo como está.", .en: "Saving profile changes resets plan progress. Cancelling keeps everything as it is."],
+        "profile.restartWarning": [.pt: "Vais recomeçar o plano e limpar as marcações dos treinos. O perfil e o histórico de peso são mantidos.", .en: "This restarts the plan and clears workout completion. Your profile and weight history are kept."],
+        "plan.exercises": [.pt: "exercícios", .en: "exercises"],
+        "plan.durationEstimate": [.pt: "Estimativa com descansos incluídos", .en: "Estimate including rest"],
+        "plan.progress": [.pt: "Progresso do treino", .en: "Workout progress"],
+        "exercise.completed": [.pt: "Concluído", .en: "Completed"],
+        "exercise.pending": [.pt: "Por concluir", .en: "Not completed"],
+        "session.progress": [.pt: "Progresso da sessão", .en: "Session progress"],
+
         // App
         "app.name": [.pt: "Calistenia Militar", .en: "Military Calisthenics"],
         "app.tagline": [.pt: "O teu plano de treino, à medida.", .en: "Your training plan, tailored to you."],
@@ -71,7 +82,6 @@ enum Translations {
         "exercise.reps": [.pt: "reps", .en: "reps"],
         "exercise.seconds": [.pt: "seg", .en: "sec"],
         "exercise.rest": [.pt: "descanso", .en: "rest"],
-        "exercise.markDone": [.pt: "Concluído", .en: "Done"],
         "exercise.set": [.pt: "Série", .en: "Set"],
 
         // Guided workout session

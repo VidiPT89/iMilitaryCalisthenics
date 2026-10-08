@@ -27,23 +27,23 @@ struct ThemePalette {
         accentDark: Color(hex: 0xdd7400),
         text: Color(hex: 0xe2e8f0),
         textDim: Color(hex: 0x94a3b8),
-        textFaint: Color(hex: 0x5b6474),
+        textFaint: Color(hex: 0x8996a8),
         danger: Color(hex: 0xef4444),
         ok: Color(hex: 0x22c55e)
     )
 
     // Same ividi.dev orange/burnt-yellow family, deepened where it doubles as
-    // text/icon color so it still clears ~4:1 contrast against the light background.
+    // text/icon color so it still clears 4.5:1 contrast against the light background.
     static let light = ThemePalette(
         background: Color(hex: 0xf7f4ef),
         panel: Color(hex: 0xffffff),
         panel2: Color(hex: 0xefe9df),
-        accent: Color(hex: 0xb8590a),
+        accent: Color(hex: 0xa14c08),
         accentLight: Color(hex: 0xf99c00),
         accentDark: Color(hex: 0x8f4300),
         text: Color(hex: 0x17140f),
         textDim: Color(hex: 0x5c574f),
-        textFaint: Color(hex: 0x8f897e),
+        textFaint: Color(hex: 0x6a645b),
         danger: Color(hex: 0xc62828),
         ok: Color(hex: 0x15803d)
     )
@@ -97,6 +97,12 @@ final class Theme {
 
     var accentGradient: LinearGradient {
         LinearGradient(colors: [accent, accentLight], startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    /// Filled actions keep a bright surface and dark label in either appearance.
+    var buttonGradient: LinearGradient {
+        LinearGradient(colors: [Color(hex: 0xf99c00), Color(hex: 0xfcbb00)],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     let cornerRadius: CGFloat = 18

@@ -9,6 +9,7 @@ struct WorkoutSessionView: View {
     @State private var viewModel: WorkoutSessionViewModel
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @ScaledMetric(relativeTo: .largeTitle) private var countdownSize = 64.0
     @State private var confirmingExit = false
     let theme = Theme.shared
 
@@ -18,19 +19,32 @@ struct WorkoutSessionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            header
-            Spacer()
-            if let step = viewModel.currentStep {
-                content(for: step)
+        ScrollView {
+            VStack(spacing: 24) {
+                header
+                if confirmingExit { exitConfirmation }
+                ProgressView(value: Double(viewModel.currentIndex), total: Double(max(1, viewModel.steps.count)))
+                    .tint(theme.accent)
+                    .accessibilityLabel(t("session.progress"))
+                if let step = viewModel.currentStep {
+                    content(for: step)
+                        .padding(.vertical, 24)
+                }
             }
-            Spacer()
+            .padding(24)
+            .frame(maxWidth: 680)
+            .frame(maxWidth: .infinity)
+        }
+        .safeAreaInset(edge: .bottom) {
             if let step = viewModel.currentStep {
                 controls(for: step)
                     .disabled(confirmingExit)
+                    .padding(24)
+                    .frame(maxWidth: 680)
+                    .frame(maxWidth: .infinity)
+                    .background(theme.background)
             }
         }
-        .padding(24)
         .background(theme.background)
         .onChange(of: viewModel.isFinished) { _, finished in
             guard finished else { return }
@@ -55,9 +69,10 @@ struct WorkoutSessionView: View {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(theme.textDim)
-                    .padding(10)
+                    .frame(width: 44, height: 44)
                     .background(Circle().fill(theme.panel))
             }
+            .accessibilityLabel(t("session.exitConfirmAction"))
             Spacer()
             if let step = viewModel.currentStep {
                 Text(t("block.\(step.blockKind.rawValue)"))
@@ -65,14 +80,7 @@ struct WorkoutSessionView: View {
                     .foregroundStyle(theme.accent)
             }
             Spacer()
-            Color.clear.frame(width: 36, height: 36)
-        }
-        .overlay(alignment: .top) {
-            if confirmingExit {
-                exitConfirmation
-                    .offset(y: 56)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+            Color.clear.frame(width: 44, height: 44)
         }
     }
 
@@ -114,11 +122,13 @@ struct WorkoutSessionView: View {
                     .foregroundStyle(theme.textDim)
                 if exercise.seconds != nil {
                     Text(timeString(viewModel.remainingSeconds))
-                        .font(.system(size: 64, weight: .bold, design: .rounded))
+                        .font(.system(size: countdownSize, weight: .bold, design: .rounded))
+                        .monospacedDigit()
                         .foregroundStyle(theme.accent)
                 } else if let reps = exercise.reps {
                     Text("\(reps) \(t("exercise.reps"))")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .font(.system(size: countdownSize * 0.75, weight: .bold, design: .rounded))
+                        .monospacedDigit()
                         .foregroundStyle(theme.accent)
                 }
             }
@@ -128,7 +138,8 @@ struct WorkoutSessionView: View {
                     .font(.title2.bold())
                     .foregroundStyle(theme.ok)
                 Text(timeString(viewModel.remainingSeconds))
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
+                    .font(.system(size: countdownSize, weight: .bold, design: .rounded))
+                    .monospacedDigit()
                     .foregroundStyle(theme.text)
             }
         }
@@ -158,7 +169,7 @@ struct WorkoutSessionView: View {
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(theme.accentGradient)
+                .background(theme.buttonGradient)
                 .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
         }
         .buttonStyle(PressableButtonStyle())

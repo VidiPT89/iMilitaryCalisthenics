@@ -34,6 +34,14 @@ struct RootView: View {
                 withAnimation(theme.springAnimation) { showSplash = false }
             }
         }
+        .onChange(of: viewModel.profile?.daysPerWeek) { _, days in
+            if let days { Task { await ReminderManager.shared.reschedule(daysPerWeek: days) } }
+        }
+        .onChange(of: LocalizationManager.shared.current) { _, _ in
+            if let days = viewModel.profile?.daysPerWeek {
+                Task { await ReminderManager.shared.reschedule(daysPerWeek: days) }
+            }
+        }
         .onChange(of: systemColorScheme) { _, newValue in
             theme.systemIsDark = newValue == .dark
         }
