@@ -73,6 +73,7 @@ struct SettingsView: View {
             .panelBackground()
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.progress")
     }
 
     private var appearanceCard: some View {

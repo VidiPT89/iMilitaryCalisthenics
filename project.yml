@@ -16,6 +16,8 @@ targets:
     info:
       path: MilitaryCalisthenics/Info.plist
       properties:
+        CFBundleDisplayName: Military Calisthenics
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen:
           UIColorName: LaunchBackground
         UISupportedInterfaceOrientations:
@@ -28,6 +30,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.ividi.militarycalisthenics
+        DEVELOPMENT_TEAM: S769436W24
+        CODE_SIGN_STYLE: Automatic
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
@@ -43,6 +47,20 @@ targets:
       base:
         SWIFT_VERSION: "5.0"
         GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_TEAM: S769436W24
+    dependencies:
+      - target: MilitaryCalisthenics
+  MilitaryCalisthenicsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: MilitaryCalisthenicsUITests
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_TEAM: S769436W24
     dependencies:
       - target: MilitaryCalisthenics
 schemes:
@@ -51,11 +69,13 @@ schemes:
       targets:
         MilitaryCalisthenics: all
         MilitaryCalisthenicsTests: [test]
+        MilitaryCalisthenicsUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - MilitaryCalisthenicsTests
+        - MilitaryCalisthenicsUITests
     archive:
       config: Release

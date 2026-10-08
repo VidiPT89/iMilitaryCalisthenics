@@ -82,6 +82,7 @@ enum Translations {
         "day.conditioning": [.pt: "Condição Física", .en: "Conditioning"],
         "day.mobility": [.pt: "Mobilidade", .en: "Mobility"],
 
+        "exercise.setsOne": [.pt: "série", .en: "set"],
         "exercise.sets": [.pt: "séries", .en: "sets"],
         "exercise.reps": [.pt: "reps", .en: "reps"],
         "exercise.seconds": [.pt: "seg", .en: "sec"],

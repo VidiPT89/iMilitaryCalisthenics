@@ -84,6 +84,16 @@ struct ExerciseDemoSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        // ScrollView keeps the header pinned to the top when the sheet is
+        // shorter than its content (iPad form sheets ignore .medium).
+        ScrollView {
+            content
+        }
+        .presentationDetents(UIDevice.current.userInterfaceIdiom == .pad ? [.large] : [.medium, .large])
+        .background(theme.background)
+    }
+
+    private var content: some View {
         VStack(spacing: 20) {
             HStack {
                 Text(t(exerciseNameKey))
@@ -116,11 +126,7 @@ struct ExerciseDemoSheet: View {
             }
             .padding(16)
             .panelBackground()
-
-            Spacer()
         }
         .padding(20)
-        .presentationDetents([.medium])
-        .background(theme.background)
     }
 }

@@ -10,27 +10,20 @@ struct SplashView: View {
             ZStack {
                 Circle()
                     .fill(theme.accentGradient)
-                    .frame(width: 96, height: 96)
+                    .frame(width: 150, height: 150)
                     .opacity(0.18)
                     .scaleEffect(pulse ? 1.25 : 0.9)
                     .blur(radius: 10)
 
-                VStack(spacing: 2) {
-                    // Single rank chevron, matching the app icon's mark.
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 16, weight: .heavy))
-                        .foregroundStyle(theme.accent)
-                        .offset(y: appear ? 0 : -6)
-                        .opacity(appear ? 1 : 0)
-
-                    Image(systemName: "figure.strengthtraining.traditional")
-                        .font(.system(size: 42, weight: .bold))
-                        .foregroundStyle(theme.accentGradient)
-                }
-                .scaleEffect(appear ? 1 : 0.6)
-                .opacity(appear ? 1 : 0)
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150, height: 150)
+                    .scaleEffect(appear ? 1 : 0.6)
+                    .opacity(appear ? 1 : 0)
+                    .accessibilityHidden(true)
             }
-            .frame(height: 110)
+            .frame(height: 170)
 
             Text(t("app.name"))
                 .font(.title2.bold())

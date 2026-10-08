@@ -31,9 +31,9 @@ enum PlanTextExporter {
     private static func line(for exercise: PlannedExercise) -> String {
         let quantity: String
         if let reps = exercise.reps {
-            quantity = "\(exercise.sets) \(t("exercise.sets")) × \(reps) \(t("exercise.reps"))"
+            quantity = "\(exercise.sets) \(t(exercise.sets == 1 ? "exercise.setsOne" : "exercise.sets")) × \(reps) \(t("exercise.reps"))"
         } else if let seconds = exercise.seconds {
-            quantity = "\(exercise.sets) \(t("exercise.sets")) × \(seconds)\(t("exercise.seconds"))"
+            quantity = "\(exercise.sets) \(t(exercise.sets == 1 ? "exercise.setsOne" : "exercise.sets")) × \(seconds)\(t("exercise.seconds"))"
         } else {
             quantity = ""
         }
