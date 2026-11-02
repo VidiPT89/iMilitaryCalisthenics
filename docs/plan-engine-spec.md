@@ -1,9 +1,12 @@
 # Plan engine specification
 
-Platform-agnostic description of the calisthenics plan generator. Both the
-iOS (`PlanEngine`) and Android (`planengine`) implementations must follow
-this document; when the algorithm changes, update this file first, then
-port the change to both platforms in the same task.
+Description of the calisthenics plan generator. The iOS implementation
+(`PlanEngine`) must follow this document; when the algorithm changes,
+update this file first.
+
+> The Android app was retired on 2026-11-02. Any remaining mention of
+> Android below is history of how the two apps were aligned in August 2026,
+> kept only to explain why the rules are what they are.
 
 ## Input
 
@@ -25,9 +28,7 @@ port the change to both platforms in the same task.
 ## Output
 
 A `TrainingPlan` containing `level.progressionWeeks` `WeeklyPlan`s
-(beginner 4, intermediate 6, advanced 8 — both platforms as of
-2026-08-30; Android previously always generated a fixed 6 regardless of
-level). Each week has `daysPerWeek` `DailyWorkout`s, each with warm-up,
+(beginner 4, intermediate 6, advanced 8). Each week has `daysPerWeek` `DailyWorkout`s, each with warm-up,
 strength, core, and cool-down blocks always present, plus circuit only
 when `includeCircuit(goal, label)` allows it for that day (see "Day
 split & movement pattern filtering" below):
@@ -41,25 +42,18 @@ split & movement pattern filtering" below):
 Each block has a list of exercises with either `reps` or `seconds`, plus
 `sets`.
 
-## Equipment model (unified 2026-08-30)
+## Equipment model
 
-Both platforms now store `equipment` as a `Set<Equipment>` — the user can
-independently toggle "Pull-up bar" and "Parallettes" on top of the always
--available bodyweight baseline, exactly like Android already did.
-iOS previously stored a single `Equipment` value behind a single-choice
-picker where selecting "Parallettes" implicitly also granted pull-up-bar
-exercises (since the UI framed the three options as cumulative tiers).
-That implicit assumption no longer holds now that the two are
-independent toggles, so `ExerciseCatalog.availableStrength` on iOS was
-changed to check `equipment.contains(.pullUpBar)` on its own — matching
-Android's `Equipment.PULL_UP_BAR in profile.equipment` — instead of
-granting pull-bar exercises whenever parallettes was picked.
+`equipment` is a `Set<Equipment>`: the user can independently toggle
+"Pull-up bar" and "Parallettes" on top of the always-available bodyweight
+baseline. `ExerciseCatalog.availableStrength` checks
+`equipment.contains(.pullUpBar)` on its own; picking parallettes does not
+imply a pull-up bar.
 
-## Calibration (unified 2026-08-30)
+## Calibration
 
-Both platforms now use the same two-factor formula — a per-plan
-`intensity` factor (level/BMI/age/sex) combined with a per-week `scale`
-(progression + deload), applied identically:
+A two-factor formula: a per-plan `intensity` factor (level/BMI/age/sex)
+combined with a per-week `scale` (progression + deload):
 
 `reps = max(4, round(baseReps * intensity * scale))`
 `seconds = max(10, round(baseSeconds * intensity * scale))`
@@ -80,18 +74,8 @@ Both platforms now use the same two-factor formula — a per-plan
   `0.025` for `age > 40`, else `0.05`
 
 Sets are a fixed count per block kind (warm-up/cool-down 1, strength 4,
-circuit/core 3) — sets themselves are never scaled by `intensity`/`scale`
-on either platform (before this unification, Android additionally scaled
-set *count* itself via a `scaleSets` helper that iOS never had; removed
-so both platforms only vary reps/seconds/duration).
-
-Before 2026-08-30 this was two independently-authored formulas that
-produced materially different volumes for the same profile: Android used
-a single `levelMultiplier * ageMultiplier(4-bucket) * bmiMultiplier(4-bucket)
-* sexMultiplier * (1.0 + weekIndex * 0.08)` with no deload week at all,
-while iOS used the intensity/scale split above. Android was rewritten to
-match iOS exactly, including the deload week (`WeeklyPlan.isDeload`,
-added to the Android model to match iOS's `WeekPlan.isDeload`).
+circuit/core 3) — sets themselves are never scaled by `intensity`/`scale`;
+only reps/seconds/duration vary.
 
 ## Day split & movement pattern filtering (unified 2026-08-30)
 

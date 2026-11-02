@@ -139,8 +139,7 @@ struct OnboardingView: View {
 
     /// Equipment is a set, not a single choice: "Bodyweight only" is always
     /// the implicit baseline, and pull-up bar / parallettes are independent
-    /// additions on top of it — matching Android's `Set<Equipment>` model
-    /// instead of the old mutually-exclusive picker.
+    /// additions on top of it, instead of the old mutually-exclusive picker.
     private var equipmentSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(t("onboarding.equipment"))
